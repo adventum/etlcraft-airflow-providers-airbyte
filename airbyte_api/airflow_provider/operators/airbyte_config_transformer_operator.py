@@ -1,61 +1,62 @@
-from datetime import datetime, timedelta
-from typing import Any, Dict, Sequence
-from airbyte_api.api import AirbyteApi
-from airbyte_api.models import CheckConnectionForUpdateRequest, GetSourceRequest, UpdateSourceRequest
-from jsonpath_ng import parse as jsonpath_parse, Child
-from airbyte_api.airflow_provider.utils import today_date, n_days_ago_date
+from typing import TYPE_CHECKING, Any, Dict, Sequence
+
+from airbyte_api.airflow_provider.hooks.airbyte_api_hook import AirbyteHook
+from airbyte_api.models import (CheckConnectionForUpdateRequest,
+                                GetSourceRequest, UpdateSourceRequest)
 from airflow.models import BaseOperator
+
+if TYPE_CHECKING:
+    from airflow.utils.context import Context
 
 
 class AirbyteSourceConfigTransformOperator(BaseOperator):
     template_fields: Sequence[str] = ('connection_id',)
 
-    def __init__(self, source_id: str, api: AirbyteApi):
-        self.source = api.get_source(
-            request=GetSourceRequest(source_id=source_id))
-        self.api = api
+    def __init__(
+        self,
+        *,
+        airbyte_conn_id: str = "airbyte_default",
+        source_id: str,
+        config_patch: Dict[str, Any],
+        api_version: str = "v1",
+        check_config_connection: bool = True,
+        **kwargs,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.airbyte_conn_id = airbyte_conn_id
+        self.source_id = source_id
+        self.api_version = api_version
+        self.check_config_connection = check_config_connection
+        self.config_patch = config_patch
 
-    def update_source_config(self, config_patch: Dict[str, Any]):
-        self.source.connection_configuration.update(config_patch)
+    def execute(self, context: 'Context') -> None:
+        # Initiate Airbyte API Hook
+        self.hook = AirbyteHook(
+            airbyte_conn_id=self.airbyte_conn_id, api_version=self.api_version)
 
+        # Get Source and it's config by Source ID
+        source = self.hook.get_source(GetSourceRequest(
+            source_id=self.source_id))
 
-def patch_update_source_config(source_id: str, config_patch: Dict[str, Any]):
-    # Initiate Airbyte API Hook
-    api = AirbyteApi(airbyte_url_base='http://localhost:8000/api/v1')
+        current_source_config = source.connection_configuration
+        current_source_config.update(self.config_patch)
 
-    # Get Source and it's config by Source ID
-    source = api.get_source(GetSourceRequest(
-        source_id=source_id))
+        is_check_connection_succeeded = True
+        if self.check_config_connection:
+            is_check_connection_succeeded = self.hook.check_source_connection_for_update(
+                request=CheckConnectionForUpdateRequest(
+                    source_id=self.source_id,
+                    connection_configuration=current_source_config,
+                    name=source.name
+                )
+            ).job_info.succeeded
 
-    current_source_config = source.connection_configuration
-    current_source_config.update(config_patch)
-
-    # Check Connection for Source config with new generated dates
-    is_check_connection_succeeded = api.check_source_connection_for_update(
-        request=CheckConnectionForUpdateRequest(
-            source_id=source_id,
-            connection_configuration=current_source_config,
-            name=source.name
-        )
-    ).job_info.succeeded
-
-    if is_check_connection_succeeded:
-        # Update config if succeeded
-        return api.update_source(
-            request=UpdateSourceRequest(
-                source_id=source_id,
-                connection_configuration=current_source_config,
-                name=source.name
+        if is_check_connection_succeeded:
+            # Update config if succeeded
+            return self.hook.update_source(
+                request=UpdateSourceRequest(
+                    source_id=self.source_id,
+                    connection_configuration=current_source_config,
+                    name=source.name
+                )
             )
-        )
-
-
-print(
-    patch_update_source_config(
-        source_id='a1db5c86-529b-4094-ae6f-70db9a9f31a0',
-        config_patch={
-            "date_from": today_date(),
-            "date_to": n_days_ago_date(last_days_count=10)
-        }
-    )
-)
