@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Any, Dict, Sequence
-from airbyte_api.api import AirbyteApiHook
+from airbyte_api.api import AirbyteApi
 from airbyte_api.models import CheckConnectionForUpdateRequest, GetSourceRequest, UpdateSourceRequest
 from jsonpath_ng import parse as jsonpath_parse, Child
 from airbyte_api.airflow_provider.utils import today_date, n_days_ago_date
@@ -10,7 +10,7 @@ from airflow.models import BaseOperator
 class AirbyteSourceConfigTransformOperator(BaseOperator):
     template_fields: Sequence[str] = ('connection_id',)
 
-    def __init__(self, source_id: str, api: AirbyteApiHook):
+    def __init__(self, source_id: str, api: AirbyteApi):
         self.source = api.get_source(
             request=GetSourceRequest(source_id=source_id))
         self.api = api
@@ -21,7 +21,7 @@ class AirbyteSourceConfigTransformOperator(BaseOperator):
 
 def patch_update_source_config(source_id: str, config_patch: Dict[str, Any]):
     # Initiate Airbyte API Hook
-    api = AirbyteApiHook(airbyte_url_base='http://localhost:8000/api/v1')
+    api = AirbyteApi(airbyte_url_base='http://localhost:8000/api/v1')
 
     # Get Source and it's config by Source ID
     source = api.get_source(GetSourceRequest(
