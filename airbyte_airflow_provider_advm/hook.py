@@ -2,12 +2,11 @@ import time
 from typing import Any, Optional, Union
 
 from airflow.exceptions import AirflowException
-from airflow.providers.http.hooks.http import HttpHook
 from airbyte_api.api import AirbyteApi
 from airbyte_api.models import ApiBaseModel, GetJobRequest, JobStatus
+from airflow.providers.airbyte.hooks.airbyte import AirbyteHook
 
-
-class AirbyteHook(HttpHook, AirbyteApi):
+class AirbyteHook(AirbyteHook, AirbyteApi):
     """
     Hook for Airbyte API
 
@@ -15,11 +14,6 @@ class AirbyteHook(HttpHook, AirbyteApi):
         connection information for Airbyte.
     :param api_version: Optional. Airbyte API version.
     """
-
-    conn_name_attr = 'airbyte_conn_id'
-    default_conn_name = 'airbyte_default'
-    conn_type = 'airbyte_advm'
-    hook_name = 'Airbyte Advm'
 
     def __init__(self, airbyte_conn_id: str = "airbyte_default", api_version: str = "v1") -> None:
         super().__init__(http_conn_id=airbyte_conn_id)

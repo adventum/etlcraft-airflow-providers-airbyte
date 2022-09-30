@@ -22,7 +22,7 @@
 # IF YOU WANT TO MODIFY IT, YOU SHOULD MODIFY THE TEMPLATE
 # `SETUP_TEMPLATE.py.jinja2` IN the `dev/provider_packages` DIRECTORY
 
-"""Setup.py for the apache-airflow-providers-airbyte-advm package."""
+"""Setup.py for the airbyte_airflow_provider_advm package."""
 
 from setuptools import find_namespace_packages, setup
 
@@ -30,13 +30,21 @@ version = '1.0.0'
 
 
 def do_setup():
-    """Perform the package apache-airflow-providers-airbyte-advm setup."""
+    """Perform the package airbyte_airflow_provider_advm setup."""
     setup(
         version=version,
-        extras_require={'http': ['apache-airflow-providers-http']},
+        install_requires=[
+            'airbyte-cdk',
+            'apache-airflow',
+            'apache-airflow-providers-airbyte'
+        ],
         packages=find_namespace_packages(
-            include=['airflow.providers.airbyte_advm',
-                     'airflow.providers.airbyte_advm.*']
+            include=[
+                'airbyte_api',
+                'airbyte_api.*',
+                'airbyte_airflow_provider_advm',
+                'airbyte_airflow_provider_advm.*'
+            ]
         ),
     )
 
