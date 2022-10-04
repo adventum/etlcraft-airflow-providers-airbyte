@@ -2,12 +2,13 @@
 
 from setuptools import find_namespace_packages, setup
 
-version = '1.0.0'
+version = '1.0.1'
 
 setup(
     name='airbyte-airflow-provider-advm',
     version=version,
     install_requires=[
+        'psycopg2-binary'
         'airbyte-cdk',
         'apache-airflow',
         'apache-airflow-providers-airbyte',
