@@ -170,10 +170,10 @@ class JobInfo(ApiBaseModel):
 
 class SourceDefinitionSpecification(ApiBaseModel):
     source_definition_id: str
-    documentation_uri: str
+    documentation_uri: Optional[str]
     connection_specification: Dict[str, Any]
-    auth_specification: AuthSpecification
-    advanced_auth: AdvancedAuth
+    auth_specification: Optional[AuthSpecification]
+    advanced_auth: Optional[AdvancedAuth]
     job_info: JobInfo
 
 

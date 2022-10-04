@@ -4,9 +4,9 @@ from typing import Any, Optional, Union
 from airflow.exceptions import AirflowException
 from airbyte_api.api import AirbyteApi
 from airbyte_api.models import ApiBaseModel, GetJobRequest, JobStatus
-from airflow.providers.airbyte.hooks.airbyte import AirbyteHook
+from airflow.providers.airbyte.hooks.airbyte import AirbyteHook as _AirbyteHook
 
-class AirbyteHook(AirbyteHook, AirbyteApi):
+class AirbyteHook(_AirbyteHook, AirbyteApi):
     """
     Hook for Airbyte API
 
@@ -16,7 +16,7 @@ class AirbyteHook(AirbyteHook, AirbyteApi):
     """
 
     def __init__(self, airbyte_conn_id: str = "airbyte_default", api_version: str = "v1") -> None:
-        super().__init__(http_conn_id=airbyte_conn_id)
+        super().__init__(airbyte_conn_id=airbyte_conn_id, api_version=api_version)
         self.api_version: str = api_version
 
     def _api_request(self, endpoint: str, data: ApiBaseModel = None, request_method: str = 'POST') -> Any:

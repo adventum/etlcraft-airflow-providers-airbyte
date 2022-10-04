@@ -1,5 +1,4 @@
 import json
-from pprint import pprint
 from typing import Optional
 
 import requests
@@ -49,7 +48,7 @@ from .models import (ApiBaseModel, CheckConnectionForUpdateRequest,
 
 class AirbyteApi:
     def __init__(self, airbyte_url_base: str = 'http://localhost:8000/api/v1', auth: Optional[HTTPBasicAuth] = None):
-        self.airbyte_api_url = airbyte_url_base
+        self.airbyte_url_base = airbyte_url_base
         self.session = requests.Session()
         if auth:
             self.session.auth = auth
