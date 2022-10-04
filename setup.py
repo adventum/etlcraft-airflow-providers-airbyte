@@ -8,7 +8,7 @@ setup(
     name='airbyte-airflow-provider-advm',
     version=version,
     install_requires=[
-        'psycopg2-binary'
+        'psycopg2-binary',
         'airbyte-cdk',
         'apache-airflow',
         'apache-airflow-providers-airbyte',
