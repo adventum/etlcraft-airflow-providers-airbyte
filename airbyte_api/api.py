@@ -248,7 +248,14 @@ class AirbyteApi:
         self,
         request: ListSourceDefinitionForWorkspaceRequest
     ) -> List[SourceDefinition]:
-        """ List all the sourceDefinitions the given workspace is configured to use """
+        """List all the Source Definitions the given workspace is configured to use
+
+        Args:
+            request (ListSourceDefinitionForWorkspaceRequest): List Source Definition For Workspace Request model
+
+        Returns:
+            List[SourceDefinition]: List of SourceDefinition models
+        """
         return [
             SourceDefinition.parse_obj(source_definition_obj)
             for source_definition_obj in self._api_request(
