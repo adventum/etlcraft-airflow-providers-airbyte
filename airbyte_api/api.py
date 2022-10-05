@@ -88,8 +88,6 @@ class AirbyteApi:
             response.raise_for_status()
         except:
             raise Exception(response.text)
-        with open('resp.json', 'w') as f:
-            json.dump(response.json(), f)
         return response
 
     def health_check(self) -> bool:

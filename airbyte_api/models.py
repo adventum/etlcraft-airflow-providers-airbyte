@@ -499,42 +499,42 @@ class CreateConnectionRequest(ApiBaseModel):
 
 
 class CloneDestinationRequest(ApiBaseModel):
-    destination_clone_id: str
-    destination_configuration: DestinationConfiguration
+    destination_clone_id: Optional[str]
+    destination_configuration: Optional[DestinationConfiguration]
 
 
 class GetDestinationDefinitionSpecificationRequest(ApiBaseModel):
-    destination_definition_id: str
-    workspace_id: str
+    destination_definition_id: Optional[str]
+    workspace_id: Optional[str]
 
 
 class ConnectionSchedule(ApiBaseModel):
-    time_unit: str
-    units: int
+    time_unit: Optional[str]
+    units: Optional[int]
 
 
 class ConnectionScheduleCron(ApiBaseModel):
-    cron_expression: str
-    cron_timezone: str
+    cron_expression: Optional[str]
+    cron_timezone: Optional[str]
 
 
 class ConnectionScheduleData(ApiBaseModel):
-    basic_schedule: ConnectionSchedule
-    cron: ConnectionScheduleCron
+    basic_schedule: Optional[ConnectionSchedule]
+    cron: Optional[ConnectionScheduleCron]
 
 
 class ConnectionSyncCatalogStreamConfig(ApiBaseModel):
-    sync_mode: SyncMode
+    sync_mode: Optional[SyncMode]
     cursor_field: List[str]
-    destination_sync_mode: DestinationSyncMode
-    primary_key: List[List[str]]
-    alias_name: str
-    selected: bool
+    destination_sync_mode: Optional[DestinationSyncMode]
+    primary_key: Optional[List[List[str]]]
+    alias_name: Optional[str]
+    selected: Optional[bool]
 
 
 class ConnectionSyncCatalogStream(ApiBaseModel):
-    stream: AirbyteStream
-    config: ConnectionSyncCatalogStreamConfig
+    stream: Optional[AirbyteStream]
+    config: Optional[ConnectionSyncCatalogStreamConfig]
 
 
 class ConnectionSyncCatalog(ApiBaseModel):
@@ -562,24 +562,24 @@ class SlackConfiguration(ApiBaseModel):
 
 
 class Notification(ApiBaseModel):
-    notificationType: str
-    send_on_success: bool
-    send_on_failure: bool
-    slack_configuration: SlackConfiguration
-    customerio_configuration: Dict[str, Any]
+    notificationType: Optional[str]
+    send_on_success: Optional[bool]
+    send_on_failure: Optional[bool]
+    slack_configuration: Optional[SlackConfiguration]
+    customerio_configuration: Optional[Dict[str, Any]]
 
 
 class Workspace(ApiBaseModel):
-    workspace_id: str
-    customer_id: str
-    email: str
-    name: str
-    slug: str
-    initial_setup_complete: bool
-    display_setup_wizard: bool
+    workspace_id: Optional[str]
+    customer_id: Optional[str]
+    email: Optional[str]
+    name: Optional[str]
+    slug: Optional[str]
+    initial_setup_complete: Optional[bool]
+    display_setup_wizard: Optional[bool]
     anonimous_data_collection: Optional[bool]
-    news: bool
-    security_updates: bool
+    news: Optional[bool]
+    security_updates: Optional[bool]
     notifications: List[Notification]
     first_completed_sync: Optional[bool]
     feedback_done: Optional[bool]
@@ -605,10 +605,10 @@ class Connection(ApiBaseModel):
     """ Describes Airbyte connection between source and destination"""
 
     connection_id: str
-    name: str
-    namespace_definition: str
-    namespace_format: str
-    prefix: str
+    name: Optional[str]
+    namespace_definition: Optional[str]
+    namespace_format: Optional[str]
+    prefix: Optional[str]
     source_id: str
     destination_id: str
     operation_ids: List[str]
@@ -616,9 +616,9 @@ class Connection(ApiBaseModel):
     schedule: Optional[ConnectionSchedule]
     schedule_type: Optional[str]
     schedule_data: Optional[ConnectionScheduleData]
-    status: str
+    status: Optional[str]
     resource_requirements: Optional[ResourceRequirements]
-    source_catalog_id: str
+    source_catalog_id: Optional[str]
 
 
 class SearchConnectionsRequest(ApiBaseModel):
