@@ -1,6 +1,6 @@
 from airbyte_api.api import AirbyteApi
 from airbyte_api.models import GetSourceRequest, CheckConnectionForUpdateRequest, UpdateSourceRequest
-from airflow.providers.airbyte_advm.utils import n_days_ago_date, today_date
+from airbyte_airflow_provider_advm.utils import n_days_ago_date, today_date
 
 
 source_id = ''
