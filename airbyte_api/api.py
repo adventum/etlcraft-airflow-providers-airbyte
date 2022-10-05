@@ -59,6 +59,22 @@ class AirbyteApi:
         data: ApiBaseModel = None,
         request_method: str = 'POST'
     ) -> requests.Response:
+        """Simple API requests provider method
+
+        Args:
+            endpoint (str): i.e. for path https://airbyte.com/api/v1/connections/create
+                endpoint will be "connections/create"
+            data (ApiBaseModel, optional): request body data that inherits from
+                abstract ApiBaseModel model. That allows to produce required
+                validations and make request args more convinient. Defaults to None.
+            request_method (str, optional): 'GET', 'POST', 'PUT' etc. Defaults to 'POST'.
+
+        Raises:
+            Exception: raised on any non-200 response codes with API error descriptions
+
+        Returns:
+            requests.Response: request response object
+        """
         response = self.session.request(
             method=request_method,
             url=f'{self.airbyte_url_base}/{endpoint}',
@@ -77,6 +93,11 @@ class AirbyteApi:
         return response
 
     def health_check(self) -> bool:
+        """Is Airbyte webserver available to provide requests and jobs
+
+        Returns:
+            bool: Is Airbyte webserver available to provide requests and jobs
+        """
         return self._api_request(
             endpoint='health',
             request_method='GET'
@@ -85,7 +106,11 @@ class AirbyteApi:
     def list_workspaces(
         self
     ) -> List[Workspace]:
-        """ List all workspaces registered in the current Airbyte deployment """
+        """List all workspaces registered in the current Airbyte deployment
+
+        Returns:
+            List[Workspace]: List of all workspaces registered in the current Airbyte deployment
+        """
         return [
             Workspace.parse_obj(source_definition_obj)
             for source_definition_obj in self._api_request(
@@ -97,7 +122,14 @@ class AirbyteApi:
         self,
         request: CreateSourceDefinitionRequest
     ) -> SourceDefinition:
-        """ Creates a sourceDefinition """
+        """Creates a Source Definition
+
+        Args:
+            request (CreateSourceDefinitionRequest): Create Source Definition Request model 
+
+        Returns:
+            SourceDefinition: Source Definition model
+        """
         return SourceDefinition.parse_obj(
             self._api_request(
                 'source_definitions/create',
@@ -109,9 +141,14 @@ class AirbyteApi:
         self,
         request: UpdateSourceDefinitionRequest
     ) -> SourceDefinition:
-        """ 
-        Update the SourceDefinition. Currently, the only allowed attribute to 
+        """Update the SourceDefinition. Currently, the only allowed attribute to 
         update is the default docker image version. 
+
+        Args:
+            request (UpdateSourceDefinitionRequest): Update Source Definition Request model
+
+        Returns:
+            SourceDefinition: Source Definition model
         """
         return SourceDefinition.parse_obj(
             self._api_request(
@@ -121,8 +158,10 @@ class AirbyteApi:
         )
 
     def list_source_definitions(self) -> List[SourceDefinition]:
-        """
-        List all the sourceDefinitions the current Airbyte deployment is configured to use
+        """List all the Source Definitions the current Airbyte deployment is configured to use
+
+        Returns:
+            List[SourceDefinition]: List of Source Definition models
         """
         return [
             SourceDefinition.parse_obj(source_definition_obj)
@@ -132,9 +171,11 @@ class AirbyteApi:
         ]
 
     def list_latest_source_definitions(self) -> List[SourceDefinition]:
-        """
-        List the latest sourceDefinitions Airbyte supports.
+        """List the latest sourceDefinitions Airbyte supports.
         Guaranteed to retrieve the latest information on supported sources.
+
+        Returns:
+            List[SourceDefinition]: List of Source Definition models
         """
         return [
             SourceDefinition.parse_obj(source_definition_obj)
@@ -147,7 +188,14 @@ class AirbyteApi:
         self,
         request: GetSourceDefinitionRequest
     ) -> SourceDefinition:
-        """ Get source definition """
+        """Get specific source definition by it's ID
+
+        Args:
+            request (GetSourceDefinitionRequest): Get Source Definition Request model
+
+        Returns:
+            SourceDefinition: Source Definition model
+        """
         return SourceDefinition.parse_obj(
             self._api_request(
                 'source_definitions/get',
@@ -159,8 +207,13 @@ class AirbyteApi:
         self,
         request: DeleteSourceDefinitionRequest
     ) -> SourceDefinition:
-        """
-        Delete a source definition
+        """Delete a specific Source Definition by it's ID
+
+        Args:
+            request (DeleteSourceDefinitionRequest): Delete Source Definition Request model
+
+        Returns:
+            SourceDefinition: Source Definition model
         """
         return SourceDefinition.parse_obj(
             self._api_request(
@@ -173,10 +226,15 @@ class AirbyteApi:
         self,
         request: ListPrivateSourceDefinitionRequest
     ) -> List[PrivateSourceDefinition]:
-        """
-        List all private, non-custom sourceDefinitions, and
+        """List all private, non-custom sourceDefinitions, and
         for each indicate whether the given workspace has a grant
         for using the definition
+
+        Args:
+            request (ListPrivateSourceDefinitionRequest): List Private Source Definition Request model
+
+        Returns:
+            List[PrivateSourceDefinition]: List of PrivateSourceDefinition models
         """
         return [
             PrivateSourceDefinition.parse_obj(private_source_definition_obj)
