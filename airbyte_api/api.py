@@ -1,5 +1,5 @@
 import json
-from typing import Optional
+from typing import Optional, List
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -84,7 +84,7 @@ class AirbyteApi:
 
     def list_workspaces(
         self
-    ) -> list[Workspace]:
+    ) -> List[Workspace]:
         """ List all workspaces registered in the current Airbyte deployment """
         return [
             Workspace.parse_obj(source_definition_obj)
@@ -120,7 +120,7 @@ class AirbyteApi:
             ).json()
         )
 
-    def list_source_definitions(self) -> list[SourceDefinition]:
+    def list_source_definitions(self) -> List[SourceDefinition]:
         """
         List all the sourceDefinitions the current Airbyte deployment is configured to use
         """
@@ -131,7 +131,7 @@ class AirbyteApi:
             ).json()['sourceDefinitions']
         ]
 
-    def list_latest_source_definitions(self) -> list[SourceDefinition]:
+    def list_latest_source_definitions(self) -> List[SourceDefinition]:
         """
         List the latest sourceDefinitions Airbyte supports.
         Guaranteed to retrieve the latest information on supported sources.
@@ -172,7 +172,7 @@ class AirbyteApi:
     def list_private_source_definitions(
         self,
         request: ListPrivateSourceDefinitionRequest
-    ) -> list[PrivateSourceDefinition]:
+    ) -> List[PrivateSourceDefinition]:
         """
         List all private, non-custom sourceDefinitions, and
         for each indicate whether the given workspace has a grant
@@ -189,7 +189,7 @@ class AirbyteApi:
     def list_source_definitions_for_workspace(
         self,
         request: ListSourceDefinitionForWorkspaceRequest
-    ) -> list[SourceDefinition]:
+    ) -> List[SourceDefinition]:
         """ List all the sourceDefinitions the given workspace is configured to use """
         return [
             SourceDefinition.parse_obj(source_definition_obj)
@@ -305,7 +305,7 @@ class AirbyteApi:
     def list_workspace_sources(
         self,
         request: ListWorkspaceSourcesRequest
-    ) -> list[Source]:
+    ) -> List[Source]:
         """ List sources for workspace. Does not return deleted sources. """
         return [
             Source.parse_obj(source)
@@ -330,7 +330,7 @@ class AirbyteApi:
     def search_source(
         self,
         request: SearchSourceRequest
-    ) -> list[Source]:
+    ) -> List[Source]:
         """ Search sources """
         return [
             Source.parse_obj(source)
@@ -422,7 +422,7 @@ class AirbyteApi:
             ).json()
         )
 
-    def list_destination_definition(self) -> list[DestinationDefinition]:
+    def list_destination_definition(self) -> List[DestinationDefinition]:
         """
         List all the destinationDefinitions the current
         Airbyte deployment is configured to use
@@ -434,7 +434,7 @@ class AirbyteApi:
             ).json()['destinationDefinitions']
         ]
 
-    def list_latest_destination_definition(self) -> list[DestinationDefinition]:
+    def list_latest_destination_definition(self) -> List[DestinationDefinition]:
         """
         List the latest destinationDefinitions Airbyte supports.
         Guaranteed to retrieve the latest information on supported destinations.
@@ -471,7 +471,7 @@ class AirbyteApi:
     def list_private_destination_definition(
         self,
         request: ListPrivateDestinationDefinitionRequest
-    ) -> list[DestinationDefinition]:
+    ) -> List[DestinationDefinition]:
         """
         List all private, non-custom destinationDefinitions,
         and for each indicate whether the given workspace
@@ -519,7 +519,7 @@ class AirbyteApi:
     def list_destinations(
         self,
         request: ListDestinationsRequest
-    ) -> list[Destination]:
+    ) -> List[Destination]:
         return [
             Destination.parse_obj(destination)
             for destination in self._api_request(
@@ -542,7 +542,7 @@ class AirbyteApi:
     def search_destinations(
         self,
         request: SearchDestinationsRequest
-    ) -> list[Destination]:
+    ) -> List[Destination]:
         return [
             Destination.parse_obj(destination)
             for destination in self._api_request(
@@ -618,7 +618,7 @@ class AirbyteApi:
     def list_connections(
         self,
         request: ConnectionsListRequest
-    ) -> list[Connection]:
+    ) -> List[Connection]:
         return [
             Connection.parse_obj(connection)
             for connection in self._api_request(
@@ -630,7 +630,7 @@ class AirbyteApi:
     def list_all_workspace_connections(
         self,
         request: ListAllConnectionRequest
-    ) -> list[Connection]:
+    ) -> List[Connection]:
         """List connections for workspace, including deleted connections."""
         return [
             Connection.parse_obj(connection)
@@ -678,7 +678,7 @@ class AirbyteApi:
     def search_connections(
         self,
         request: SearchConnectionsRequest
-    ) -> list[Connection]:
+    ) -> List[Connection]:
         return [
             Connection.parse_obj(connection)
             for connection in self._api_request(
@@ -738,7 +738,7 @@ class AirbyteApi:
             ).json()
         )
 
-    def list_jobs(self, request: ListJobsRequest) -> list[DetailedJob]:
+    def list_jobs(self, request: ListJobsRequest) -> List[DetailedJob]:
         return [
             DetailedJob.parse_obj(connection)
             for connection in self._api_request(

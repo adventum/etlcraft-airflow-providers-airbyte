@@ -1,13 +1,129 @@
 from enum import Enum
 from re import L
-from typing import Any, Dict, Optional
-
-from airbyte_cdk.models import (AirbyteCatalog, AirbyteGlobalState,
-                                AirbyteStream as _AirbyteStream, AirbyteStreamState,
-                                DestinationSyncMode, StreamDescriptor,
-                                SyncMode, AuthSpecification, AdvancedAuth,
-                                ConfiguredAirbyteCatalog)
+from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Extra
+
+
+
+
+class AuthFlowType(Enum):
+    oauth2_0 = "oauth2.0"
+    oauth1_0 = "oauth1.0"
+
+class DestinationSyncMode(Enum):
+    append = "append"
+    overwrite = "overwrite"
+    append_dedup = "append_dedup"
+
+
+class SyncMode(Enum):
+    full_refresh = "full_refresh"
+    incremental = "incremental"
+
+
+class _AirbyteStream(BaseModel):
+    class Config:
+        extra = Extra.allow
+
+    name: str
+    json_schema: Dict[str, Any]
+    supported_sync_modes: Optional[List[SyncMode]]
+    source_defined_cursor: Optional[bool]
+    default_cursor_field: Optional[List[str]]
+    source_defined_primary_key: Optional[List[List[str]]]
+    namespace: Optional[str]
+
+
+
+
+class ConfiguredAirbyteStream(BaseModel):
+    class Config:
+        extra = Extra.allow
+
+    stream: _AirbyteStream
+    sync_mode: SyncMode
+    cursor_field: Optional[List[str]]
+    destination_sync_mode: DestinationSyncMode
+    primary_key: Optional[List[List[str]]]
+
+
+class ConfiguredAirbyteCatalog(BaseModel):
+    class Config:
+        extra = Extra.allow
+
+    streams: List[ConfiguredAirbyteStream]
+
+
+class AuthType(Enum):
+    oauth2_0 = "oauth2.0"
+
+
+class OAuth2Specification(BaseModel):
+    class Config:
+        extra = Extra.allow
+
+    rootObject: Optional[List[Union[str, int]]]
+    oauthFlowInitParameters: Optional[List[List[str]]]
+    oauthFlowOutputParameters: Optional[List[List[str]]]
+
+class OAuthConfigSpecification(BaseModel):
+    class Config:
+        extra = Extra.allow
+
+    oauth_user_input_from_connector_config_specification: Optional[Dict[str, Any]]
+    complete_oauth_output_specification: Optional[Dict[str, Any]]
+    complete_oauth_server_input_specification: Optional[Dict[str, Any]]
+    complete_oauth_server_output_specification: Optional[Dict[str, Any]]
+
+
+class AuthSpecification(BaseModel):
+    auth_type: Optional[AuthType]
+    oauth2Specification: Optional[OAuth2Specification]
+
+
+class AdvancedAuth(BaseModel):
+    auth_flow_type: Optional[AuthFlowType]
+    predicate_key: Optional[List[str]]
+    predicate_value: Optional[str]
+    oauth_config_specification: Optional[OAuthConfigSpecification]
+
+
+class StreamDescriptor(BaseModel):
+    class Config:
+        extra = Extra.allow
+
+    name: str
+    namespace: Optional[str] = None
+
+
+
+class AirbyteStateBlob(BaseModel):
+    pass
+
+    class Config:
+        extra = Extra.allow
+
+class AirbyteStreamState(BaseModel):
+    class Config:
+        extra = Extra.allow
+
+    stream_descriptor: StreamDescriptor
+    stream_state: Optional[AirbyteStateBlob] = None
+
+
+class AirbyteCatalog(BaseModel):
+    class Config:
+        extra = Extra.allow
+
+    streams: List[_AirbyteStream]
+
+
+class AirbyteGlobalState(BaseModel):
+    class Config:
+        extra = Extra.allow
+
+    shared_state: Optional[AirbyteStateBlob] = None
+    stream_states: List[AirbyteStreamState]
 
 
 class JobStatus(Enum):
@@ -37,10 +153,10 @@ class AirbyteStream(ApiBaseModel):
 
     name: str
     json_schema: Dict[str, Any]
-    supported_sync_modes: Optional[list[SyncMode]]
+    supported_sync_modes: Optional[List[SyncMode]]
     source_defined_cursor: Optional[bool]
-    default_cursor_field: Optional[list[str]]
-    source_defined_primary_key: Optional[list[list[str]]]
+    default_cursor_field: Optional[List[str]]
+    source_defined_primary_key: Optional[List[List[str]]]
     namespace: Optional[str]
 
 
@@ -54,7 +170,7 @@ class Pagination(ApiBaseModel):
 
 
 class ListJobsRequest(ApiBaseModel):
-    config_types: list[str]
+    config_types: List[str]
     config_id: str
     including_job_id: int
     pagination: Pagination
@@ -77,7 +193,7 @@ class JobSpecificResourceRequirements(ApiBaseModel):
 
 class DefinitionResourceRequirements(ApiBaseModel):
     default: ResourceRequirements
-    job_specific: Optional[list[JobSpecificResourceRequirements]]
+    job_specific: Optional[List[JobSpecificResourceRequirements]]
 
 
 class CreateSourceDefinitionRequest(ApiBaseModel):
@@ -155,7 +271,7 @@ class PrivateSourceDefinition(ApiBaseModel):
 
 
 class Logs(ApiBaseModel):
-    log_lines: list[str]
+    log_lines: List[str]
 
 
 class JobInfo(ApiBaseModel):
@@ -381,7 +497,7 @@ class CreateConnectionRequest(ApiBaseModel):
     prefix: str
     source_id: str
     destination_id: str
-    operations_ids: list[str]
+    operations_ids: List[str]
     sync_catalog: ConfiguredAirbyteCatalog
 
 
@@ -412,9 +528,9 @@ class ConnectionScheduleData(ApiBaseModel):
 
 class ConnectionSyncCatalogStreamConfig(ApiBaseModel):
     sync_mode: SyncMode
-    cursor_field: list[str]
+    cursor_field: List[str]
     destination_sync_mode: DestinationSyncMode
-    primary_key: list[list[str]]
+    primary_key: List[List[str]]
     alias_name: str
     selected: bool
 
@@ -425,7 +541,7 @@ class ConnectionSyncCatalogStream(ApiBaseModel):
 
 
 class ConnectionSyncCatalog(ApiBaseModel):
-    streams: list[ConnectionSyncCatalogStream]
+    streams: List[ConnectionSyncCatalogStream]
 
 
 class UpdateConnectionRequest(ApiBaseModel):
@@ -434,7 +550,7 @@ class UpdateConnectionRequest(ApiBaseModel):
     namespace_format: Optional[str]
     name: Optional[str]
     prefix: Optional[str]
-    operation_ids: Optional[list[str]]
+    operation_ids: Optional[List[str]]
     sync_catalog: Optional[ConnectionSyncCatalog]
     schedule: Optional[ConnectionSchedule]
     schedule_type: Optional[str]
@@ -467,7 +583,7 @@ class Workspace(ApiBaseModel):
     anonimous_data_collection: Optional[bool]
     news: bool
     security_updates: bool
-    notifications: list[Notification]
+    notifications: List[Notification]
     first_completed_sync: Optional[bool]
     feedback_done: Optional[bool]
 
@@ -498,7 +614,7 @@ class Connection(ApiBaseModel):
     prefix: str
     source_id: str
     destination_id: str
-    operation_ids: list[str]
+    operation_ids: List[str]
     sync_catalog: ConnectionSyncCatalog
     schedule: Optional[ConnectionSchedule]
     schedule_type: Optional[str]
@@ -532,7 +648,7 @@ class ConnectionState(ApiBaseModel):
     state_type: str
     connection_id: str
     state: Dict[str, Any]
-    stream_state: list[AirbyteStreamState]
+    stream_state: List[AirbyteStreamState]
     global_state: AirbyteGlobalState
 
 
@@ -554,7 +670,7 @@ class CreateOrUpdateConnectionStateRequest(ApiBaseModel):
 
 
 class JobDefinitionResetConfig(ApiBaseModel):
-    streams_to_reset: list[StreamDescriptor]
+    streams_to_reset: List[StreamDescriptor]
 
 
 class JobDefinition(ApiBaseModel):
@@ -590,7 +706,7 @@ class JobFailure(ApiBaseModel):
 
 
 class JobFailureSummary(ApiBaseModel):
-    failures: list[JobFailure]
+    failures: List[JobFailure]
     partial_success: bool
 
 
@@ -603,12 +719,12 @@ class JobAttemptDefinition(ApiBaseModel):
     bytes_synced: str
     records_synced: str
     total_stats: StreamStat
-    stream_stats: list[StreamStatsDefinition]
+    stream_stats: List[StreamStatsDefinition]
     failure_summary: JobFailureSummary
 
 
 class JobAttemptLogs(ApiBaseModel):
-    log_lines: list[str]
+    log_lines: List[str]
 
 
 class JobAttempt(ApiBaseModel):
@@ -618,7 +734,7 @@ class JobAttempt(ApiBaseModel):
 
 class DetailedJob(ApiBaseModel):
     job: JobDefinition
-    attempts: list[JobAttempt]
+    attempts: List[JobAttempt]
 
 
 class Job(ApiBaseModel):
