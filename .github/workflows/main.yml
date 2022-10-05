@@ -1,8 +1,5 @@
 name: Build Docs and Open PR
-on:
-  push:
-    branches: 
-      - master
+on: [push]
 
 jobs:
   build:
