@@ -13,11 +13,18 @@
  - [Соединений](https://airbyte-public-api-docs.s3.us-east-2.amazonaws.com/rapidoc-api-docs.html#tag--connection)
 
 
+[Документация клиента Airbyte API](./docs/airbyte_api.api.md)
+
 ## airbyte-airflow-provider-advm
 
+
+
 Модуль включает в себя:
- - [реализацию Airflow-хука](./airbyte_airflow_provider_advm/hook.py) (на основе [API-клиента модуля `airbyte-api`](./airbyte_api/api.py), что позволяет настраивать очень гибкое поведение DAG'ов и операторов). [пример использования в dag'e](./airbyte_airflow_provider_advm/examples/sync_airbyte_connection_by_prefix_dag.py)
- - [Airflow-операторы](./airbyte_airflow_provider_advm/operators.py) для трансформации конфигураций Airbyte-соединений
+  - [реализацию Airflow-хука](./airbyte_airflow_provider_advm/hook.py) (на основе [API-клиента модуля `airbyte-api`](./airbyte_api/api.py), что позволяет настраивать очень гибкое поведение DAG'ов и операторов).
+    - [пример использования в dag'e](./airbyte_airflow_provider_advm/examples/sync_airbyte_connection_by_prefix_dag.py)
+    - [документация хука](./docs/airbyte_airflow_provider_advm.hook.md)
+  - [Airflow-операторы](./airbyte_airflow_provider_advm/operators.py) для трансформации конфигураций Airbyte-соединений:
+    - [документация операторов](./docs/airbyte_airflow_provider_advm.operators.md)
 
 ## Ссылки
 
