@@ -48,7 +48,7 @@ class AirbyteSourceConfigTransformOperator(BaseOperator):
 
         current_source_config = source.connection_configuration
         current_source_config.update(self.config_patch)
-        
+
         for field_to_delete in self.delete_fields:
             try:
                 del current_source_config[field_to_delete]
@@ -69,7 +69,7 @@ class AirbyteSourceConfigTransformOperator(BaseOperator):
 
         if is_check_connection_succeeded:
             # Update config if succeeded
-            return self.hook.update_source(
+            self.hook.update_source(
                 request=UpdateSourceRequest(
                     source_id=self.source_id,
                     connection_configuration=current_source_config,
