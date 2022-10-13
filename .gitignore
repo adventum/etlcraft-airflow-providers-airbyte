@@ -1,6 +1,11 @@
+test.py
 /examples
 /dist_packages
 /.venv
+/.venv3.7
+/examples_non_dates
+exh.json
+exh.jsonl
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
