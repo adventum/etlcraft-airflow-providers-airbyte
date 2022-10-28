@@ -3,7 +3,7 @@ from typing import Any, Optional, Union
 
 from airflow.exceptions import AirflowException
 from airbyte_api.api import AirbyteApi
-from airbyte_api.models import ApiBaseModel, GetJobRequest, JobStatus
+from airbyte_api.models import ApiBaseModel, ConnectionsListRequest, GetJobRequest, JobStatus
 from airflow.providers.airbyte.hooks.airbyte import AirbyteHook as _AirbyteHook
 
 class AirbyteHook(_AirbyteHook, AirbyteApi):
@@ -29,6 +29,30 @@ class AirbyteHook(_AirbyteHook, AirbyteApi):
                 by_alias=True
             ) if data else None,
             headers={"accept": "application/json"},
+        )
+
+    def get_airbyte_connections_by_prefix(self, workspace_id: str, prefix: str):
+        """ Return Airbyte Connections filtered by prefix equals `prefix` arg """
+        workspace_connections = self.list_connections(
+            request=ConnectionsListRequest(workspace_id=workspace_id)
+        )
+        return list(
+            filter(
+                lambda conn: conn.prefix==prefix,
+                workspace_connections
+            )
+        )
+
+    def get_airbyte_connections_by_prefix_startswith(self, workspace_id: str, prefix_startswith: str):
+        """ Return Airbyte Connections filtered by prefix startswith `prefix_startswith` arg """
+        workspace_connections = self.list_connections(
+            request=ConnectionsListRequest(workspace_id=workspace_id)
+        )
+        return list(
+            filter(
+                lambda conn: conn.prefix.startswith(prefix_startswith),
+                workspace_connections
+            )
         )
 
     def wait_for_job(
