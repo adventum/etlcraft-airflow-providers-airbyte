@@ -107,12 +107,13 @@ class AirbyteApi:
         Returns:
             requests.Response: request response object
         """
-        response = self.session.request(
-            method=request_method,
-            url=f"{self.airbyte_url_base}/{endpoint}",
-            json=data.dict(exclude_none=True, exclude_unset=True, by_alias=True)
+        json_ = (
+            data.dict(exclude_none=True, exclude_unset=True, by_alias=True)
             if data
-            else None,
+            else None
+        )
+        response = self.session.request(
+            method=request_method, url=f"{self.airbyte_url_base}/{endpoint}", json=json_
         )
         try:
             response.raise_for_status()

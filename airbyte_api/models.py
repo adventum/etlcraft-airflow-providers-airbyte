@@ -3,19 +3,20 @@ from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Extra
 
 
-class AuthFlowType(Enum):
-    oauth2_0 = "oauth2.0"
-    oauth1_0 = "oauth1.0"
-
-class DestinationSyncMode(Enum):
-    append = "append"
-    overwrite = "overwrite"
-    append_dedup = "append_dedup"
+class AuthFlowType(str, Enum):
+    oauth2_0: str = "oauth2.0"
+    oauth1_0: str = "oauth1.0"
 
 
-class SyncMode(Enum):
-    full_refresh = "full_refresh"
-    incremental = "incremental"
+class DestinationSyncMode(str, Enum):
+    append: str = "append"
+    overwrite: str = "overwrite"
+    append_dedup: str = "append_dedup"
+
+
+class SyncMode(str, Enum):
+    full_refresh: str = "full_refresh"
+    incremental: str = "incremental"
 
 
 class _AirbyteStream(BaseModel):
@@ -29,8 +30,6 @@ class _AirbyteStream(BaseModel):
     default_cursor_field: Optional[List[str]]
     source_defined_primary_key: Optional[List[List[str]]]
     namespace: Optional[str]
-
-
 
 
 class ConfiguredAirbyteStream(BaseModel):
@@ -51,8 +50,8 @@ class ConfiguredAirbyteCatalog(BaseModel):
     streams: List[ConfiguredAirbyteStream]
 
 
-class AuthType(Enum):
-    oauth2_0 = "oauth2.0"
+class AuthType(str, Enum):
+    oauth2_0: str = "oauth2.0"
 
 
 class OAuth2Specification(BaseModel):
@@ -62,6 +61,7 @@ class OAuth2Specification(BaseModel):
     rootObject: Optional[List[Union[str, int]]]
     oauthFlowInitParameters: Optional[List[List[str]]]
     oauthFlowOutputParameters: Optional[List[List[str]]]
+
 
 class OAuthConfigSpecification(BaseModel):
     class Config:
@@ -93,12 +93,12 @@ class StreamDescriptor(BaseModel):
     namespace: Optional[str] = None
 
 
-
 class AirbyteStateBlob(BaseModel):
     pass
 
     class Config:
         extra = Extra.allow
+
 
 class AirbyteStreamState(BaseModel):
     class Config:
@@ -123,20 +123,21 @@ class AirbyteGlobalState(BaseModel):
     stream_states: List[AirbyteStreamState]
 
 
-class JobStatus(Enum):
-    RUNNING = 'running'
-    SUCCEEDED = "succeeded"
-    CANCELLED = "cancelled"
-    PENDING = "pending"
-    FAILED = "failed"
-    ERROR = "error"
-    INCOMPLETE = "incomplete"
+class JobStatus(str, Enum):
+    RUNNING: str = "running"
+    SUCCEEDED: str = "succeeded"
+    CANCELLED: str = "cancelled"
+    PENDING: str = "pending"
+    FAILED: str = "failed"
+    ERROR: str = "error"
+    INCOMPLETE: str = "incomplete"
 
 
 def to_camel(string: str) -> str:
-    return ''.join(
+    return "".join(
         word.capitalize() if word_n > 0 else word
-        for word_n, word in enumerate(string.split('_')))
+        for word_n, word in enumerate(string.split("_"))
+    )
 
 
 class ApiBaseModel(BaseModel):
@@ -147,7 +148,6 @@ class ApiBaseModel(BaseModel):
 
 
 class AirbyteStream(ApiBaseModel):
-
     name: str
     json_schema: Dict[str, Any]
     supported_sync_modes: Optional[List[SyncMode]]
@@ -174,13 +174,14 @@ class ListJobsRequest(ApiBaseModel):
 
 
 class ResourceRequirements(ApiBaseModel):
-    cpu_request: str
-    cpu_limit: str
-    memory_request: str
-    memory_limit: str
+    cpu_request: Optional[str]
+    cpu_limit: Optional[str]
+    memory_request: Optional[str]
+    memory_limit: Optional[str]
 
     class Config:
-        def alias_generator(field_name): return field_name
+        def alias_generator(field_name):
+            return field_name
 
 
 class JobSpecificResourceRequirements(ApiBaseModel):
@@ -548,11 +549,11 @@ class UpdateConnectionRequest(ApiBaseModel):
     name: Optional[str]
     prefix: Optional[str]
     operation_ids: Optional[List[str]]
-    sync_catalog: Optional[ConnectionSyncCatalog]
+    sync_catalog: ConnectionSyncCatalog
     schedule: Optional[ConnectionSchedule]
     schedule_type: Optional[str]
-    schedule_data: ConnectionScheduleData
-    status: Optional[str]
+    schedule_data: Optional[ConnectionScheduleData]
+    status: str
     resource_requirements: Optional[ResourceRequirements]
     source_catalog_id: Optional[str]
 
@@ -602,7 +603,7 @@ class ListAllConnectionRequest(ApiBaseModel):
 
 
 class Connection(ApiBaseModel):
-    """ Describes Airbyte connection between source and destination"""
+    """Describes Airbyte connection between source and destination"""
 
     connection_id: str
     name: Optional[str]
