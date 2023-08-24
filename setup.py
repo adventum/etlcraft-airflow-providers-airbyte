@@ -2,7 +2,7 @@
 
 from setuptools import find_namespace_packages, setup
 
-version = "1.2.0"
+version = "1.2.1"
 
 setup(
     name="airbyte-airflow-provider-advm",
@@ -10,7 +10,7 @@ setup(
     install_requires=[
         "psycopg2-binary",
         "airbyte-cdk",
-        "apache-airflow",
+        "apache-airflow==2.6.3",
         "apache-airflow-providers-airbyte",
         "jsonpath-ng",
     ],
