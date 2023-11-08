@@ -3,13 +3,6 @@ from datetime import datetime
 from multiprocessing.dummy import connection
 from typing import TYPE_CHECKING, Any, Dict, List, Mapping, Optional, Sequence
 
-from airbyte_api.models import (
-    CheckConnectionForUpdateRequest,
-    DetailedJob,
-    GetSourceRequest,
-    ResetConnectionRequest,
-    UpdateSourceRequest,
-)
 from airflow import AirflowException
 from airflow.models import BaseOperator
 from jsonpath_ng import Child, jsonpath
@@ -21,6 +14,13 @@ from airbyte_airflow_provider_advm.utils import (
     first_level_date_from_field_names,
     first_level_date_to_field_names,
     lookup_fields_paths_mapping,
+)
+from airbyte_api.models import (
+    CheckConnectionForUpdateRequest,
+    DetailedJob,
+    GetSourceRequest,
+    ResetConnectionRequest,
+    UpdateSourceRequest,
 )
 
 if TYPE_CHECKING:
@@ -39,7 +39,7 @@ class AirbyteSourceConfigTransformOperator(BaseOperator):
         airbyte_conn_id: str = "airbyte_default",
         source_id: str,
         config_patch: Dict[str, Any],
-        delete_fields: List[str],
+        delete_fields: List[str] = [],
         api_version: str = "v1",
         check_config_connection: bool = True,
         **kwargs,
@@ -54,9 +54,7 @@ class AirbyteSourceConfigTransformOperator(BaseOperator):
 
     def execute(self, context: "Context") -> None:
         # Initiate Airbyte API Hook
-        self.hook = AirbyteHook(
-            airbyte_conn_id=self.airbyte_conn_id, api_version=self.api_version
-        )
+        self.hook = AirbyteHook(airbyte_conn_id=self.airbyte_conn_id, api_version=self.api_version)
 
         # Get Source and it's config by Source ID
         source = self.hook.get_source(GetSourceRequest(source_id=self.source_id))
@@ -119,9 +117,7 @@ class AirbyteResetConnectionOperator(BaseOperator):
 
     def execute(self, context: "Context") -> None:
         # Initiate Airbyte API Hook
-        self.hook = AirbyteHook(
-            airbyte_conn_id=self.airbyte_conn_id, api_version=self.api_version
-        )
+        self.hook = AirbyteHook(airbyte_conn_id=self.airbyte_conn_id, api_version=self.api_version)
 
         detailed_job: DetailedJob = self.hook.reset_connection(
             request=ResetConnectionRequest(connection_id=self.connection_id)
@@ -198,9 +194,9 @@ class LookupSourceDatesFieldsOperator(BaseOperator):
             for pattern in self.lookup_fields_paths_mapping[field_type].keys():
                 jsonpath_pattern: Child = parse(pattern)
                 if jsonpath_pattern.find(spec_properties):
-                    found_field_paths_in_schema[
+                    found_field_paths_in_schema[field_type] = self.lookup_fields_paths_mapping[
                         field_type
-                    ] = self.lookup_fields_paths_mapping[field_type][pattern]
+                    ][pattern]
                     if field_type == "date_type_const":
                         available_date_type_consts = [
                             found_const.value
@@ -208,9 +204,7 @@ class LookupSourceDatesFieldsOperator(BaseOperator):
                         ]
                         for const in self.custom_date_constants:
                             if const in available_date_type_consts:
-                                found_field_paths_in_schema[
-                                    "custom_date_constant"
-                                ] = const
+                                found_field_paths_in_schema["custom_date_constant"] = const
                     found_jsonpath_pattern = jsonpath_pattern
 
                     break
@@ -221,28 +215,17 @@ class LookupSourceDatesFieldsOperator(BaseOperator):
                         raise AirflowException(
                             f"{field_type} field not found in source defined specification."
                         )
-            if (
-                field_type in found_field_paths_in_schema.keys()
-                and field_type == "date_from"
-            ):
-                date_from_field: Dict = found_jsonpath_pattern.find(spec_properties)[
-                    0
-                ].value
+            if field_type in found_field_paths_in_schema.keys() and field_type == "date_from":
+                date_from_field: Dict = found_jsonpath_pattern.find(spec_properties)[0].value
                 found_field_paths_in_schema["date_format"] = None
                 found_date_format_from_pattern = dates_format_pattern_mapping.get(
                     date_from_field.get("pattern")
                 )
 
                 if date_from_field.get("format") == "date-time":
-                    found_field_paths_in_schema[
-                        "date_format"
-                    ] = self.default_date_format
+                    found_field_paths_in_schema["date_format"] = self.default_date_format
                 elif found_date_format_from_pattern:
-                    found_field_paths_in_schema[
-                        "date_format"
-                    ] = found_date_format_from_pattern
+                    found_field_paths_in_schema["date_format"] = found_date_format_from_pattern
                 else:
-                    found_field_paths_in_schema[
-                        "date_format"
-                    ] = self.default_date_format
+                    found_field_paths_in_schema["date_format"] = self.default_date_format
         return found_field_paths_in_schema
