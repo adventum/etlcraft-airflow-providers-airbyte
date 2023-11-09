@@ -7,6 +7,7 @@ from airflow import AirflowException
 from airflow.models import BaseOperator
 from jsonpath_ng import Child, jsonpath
 from jsonpath_ng.ext import parse
+from pydantic import ValidationError
 
 from airbyte_airflow_provider_advm.hook import AirbyteHook
 from airbyte_airflow_provider_advm.utils import (
@@ -57,7 +58,10 @@ class AirbyteSourceConfigTransformOperator(BaseOperator):
         self.hook = AirbyteHook(airbyte_conn_id=self.airbyte_conn_id, api_version=self.api_version)
 
         # Get Source and it's config by Source ID
-        source = self.hook.get_source(GetSourceRequest(source_id=self.source_id))
+        try:
+            source = self.hook.get_source(GetSourceRequest(source_id=self.source_id))
+        except ValidationError:
+            source = self.hook.get_source(GetSourceRequest(sourceId=self.source_id))
 
         current_source_config = source.connection_configuration
         current_source_config.update(self.config_patch)
