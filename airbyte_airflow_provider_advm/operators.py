@@ -58,10 +58,9 @@ class AirbyteSourceConfigTransformOperator(BaseOperator):
         self.hook = AirbyteHook(airbyte_conn_id=self.airbyte_conn_id, api_version=self.api_version)
 
         # Get Source and it's config by Source ID
-        try:
-            source = self.hook.get_source(GetSourceRequest(source_id=self.source_id))
-        except ValidationError:
-            source = self.hook.get_source(GetSourceRequest(sourceId=self.source_id))
+        print("source_id", self.source_id)
+        source_request = GetSourceRequest(source_id=self.source_id)
+        source = self.hook.get_source(source_request)
 
         current_source_config = source.connection_configuration
         current_source_config.update(self.config_patch)
