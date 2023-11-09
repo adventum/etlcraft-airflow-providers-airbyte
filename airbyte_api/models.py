@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
-from pydantic import BaseModel, Extra
+
+from pydantic import BaseModel, ConfigDict, Extra
 
 
 class AuthFlowType(str, Enum):
@@ -135,16 +136,18 @@ class JobStatus(str, Enum):
 
 def to_camel(string: str) -> str:
     return "".join(
-        word.capitalize() if word_n > 0 else word
-        for word_n, word in enumerate(string.split("_"))
+        word.capitalize() if word_n > 0 else word for word_n, word in enumerate(string.split("_"))
     )
 
 
 class ApiBaseModel(BaseModel):
-    class Config:
-        alias_generator = to_camel
-        allow_population_by_field_name = True
-        extra = Extra.allow
+    model_config = ConfigDict(
+        populate_by_name=True,
+        alias_generator=to_camel,
+        allow_population_by_field_name=True,
+        allow_population_by_alias=True,
+        extra=Extra.allow,
+    )
 
 
 class AirbyteStream(ApiBaseModel):
