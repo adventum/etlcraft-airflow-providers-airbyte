@@ -2,7 +2,7 @@
 
 from setuptools import find_namespace_packages, setup
 
-version = "1.2.7"
+version = "1.2.8"
 
 setup(
     name="airbyte-airflow-provider-advm",
@@ -13,7 +13,7 @@ setup(
         "apache-airflow",
         "apache-airflow-providers-airbyte",
         "jsonpath-ng",
-        "pydantic==1.10.10",
+        "pydantic",
     ],
     packages=find_namespace_packages(
         include=[

@@ -141,13 +141,13 @@ def to_camel(string: str) -> str:
 
 
 class ApiBaseModel(BaseModel):
-    model_config = ConfigDict(
-        populate_by_name=True,
-        alias_generator=to_camel,
-        allow_population_by_field_name=True,
-        allow_population_by_alias=True,
-        extra=Extra.allow,
-    )
+
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+        allow_population_by_alias = True
+        populate_by_name = True
+        extra = Extra.allow
 
 
 class AirbyteStream(ApiBaseModel):
