@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Extra
+from pydantic import BaseModel, ConfigDict, Extra, Field
 
 
 class AuthFlowType(str, Enum):
@@ -26,11 +26,11 @@ class _AirbyteStream(BaseModel):
 
     name: str
     json_schema: Dict[str, Any]
-    supported_sync_modes: Optional[List[SyncMode]]
-    source_defined_cursor: Optional[bool]
-    default_cursor_field: Optional[List[str]]
-    source_defined_primary_key: Optional[List[List[str]]]
-    namespace: Optional[str]
+    supported_sync_modes: Optional[List[SyncMode]] = Field(default=None)
+    source_defined_cursor: Optional[bool] = Field(default=None)
+    default_cursor_field: Optional[List[str]] = Field(default=None)
+    source_defined_primary_key: Optional[List[List[str]]] = Field(default=None)
+    namespace: Optional[str] = Field(default=None)
 
 
 class ConfiguredAirbyteStream(BaseModel):
@@ -39,9 +39,9 @@ class ConfiguredAirbyteStream(BaseModel):
 
     stream: _AirbyteStream
     sync_mode: SyncMode
-    cursor_field: Optional[List[str]]
+    cursor_field: Optional[List[str]] = Field(default=None)
     destination_sync_mode: DestinationSyncMode
-    primary_key: Optional[List[List[str]]]
+    primary_key: Optional[List[List[str]]] = Field(default=None)
 
 
 class ConfiguredAirbyteCatalog(BaseModel):
@@ -59,31 +59,33 @@ class OAuth2Specification(BaseModel):
     class Config:
         extra = Extra.allow
 
-    rootObject: Optional[List[Union[str, int]]]
-    oauthFlowInitParameters: Optional[List[List[str]]]
-    oauthFlowOutputParameters: Optional[List[List[str]]]
+    rootObject: Optional[List[Union[str, int]]] = Field(default=None)
+    oauthFlowInitParameters: Optional[List[List[str]]] = Field(default=None)
+    oauthFlowOutputParameters: Optional[List[List[str]]] = Field(default=None)
 
 
 class OAuthConfigSpecification(BaseModel):
     class Config:
         extra = Extra.allow
 
-    oauth_user_input_from_connector_config_specification: Optional[Dict[str, Any]]
-    complete_oauth_output_specification: Optional[Dict[str, Any]]
-    complete_oauth_server_input_specification: Optional[Dict[str, Any]]
-    complete_oauth_server_output_specification: Optional[Dict[str, Any]]
+    oauth_user_input_from_connector_config_specification: Optional[Dict[str, Any]] = Field(
+        default=None
+    )
+    complete_oauth_output_specification: Optional[Dict[str, Any]] = Field(default=None)
+    complete_oauth_server_input_specification: Optional[Dict[str, Any]] = Field(default=None)
+    complete_oauth_server_output_specification: Optional[Dict[str, Any]] = Field(default=None)
 
 
 class AuthSpecification(BaseModel):
-    auth_type: Optional[AuthType]
-    oauth2Specification: Optional[OAuth2Specification]
+    auth_type: Optional[AuthType] = Field(default=None)
+    oauth2Specification: Optional[OAuth2Specification] = Field(default=None)
 
 
 class AdvancedAuth(BaseModel):
-    auth_flow_type: Optional[AuthFlowType]
-    predicate_key: Optional[List[str]]
-    predicate_value: Optional[str]
-    oauth_config_specification: Optional[OAuthConfigSpecification]
+    auth_flow_type: Optional[AuthFlowType] = Field(default=None)
+    predicate_key: Optional[List[str]] = Field(default=None)
+    predicate_value: Optional[str] = Field(default=None)
+    oauth_config_specification: Optional[OAuthConfigSpecification] = Field(default=None)
 
 
 class StreamDescriptor(BaseModel):
@@ -91,7 +93,7 @@ class StreamDescriptor(BaseModel):
         extra = Extra.allow
 
     name: str
-    namespace: Optional[str] = None
+    namespace: Optional[str] = Field(default=None)
 
 
 class AirbyteStateBlob(BaseModel):
@@ -106,7 +108,7 @@ class AirbyteStreamState(BaseModel):
         extra = Extra.allow
 
     stream_descriptor: StreamDescriptor
-    stream_state: Optional[AirbyteStateBlob] = None
+    stream_state: Optional[AirbyteStateBlob] = Field(default=None)
 
 
 class AirbyteCatalog(BaseModel):
@@ -120,7 +122,7 @@ class AirbyteGlobalState(BaseModel):
     class Config:
         extra = Extra.allow
 
-    shared_state: Optional[AirbyteStateBlob] = None
+    shared_state: Optional[AirbyteStateBlob] = Field(default=None)
     stream_states: List[AirbyteStreamState]
 
 
@@ -153,11 +155,11 @@ class ApiBaseModel(BaseModel):
 class AirbyteStream(ApiBaseModel):
     name: str
     json_schema: Dict[str, Any]
-    supported_sync_modes: Optional[List[SyncMode]]
-    source_defined_cursor: Optional[bool]
-    default_cursor_field: Optional[List[str]]
-    source_defined_primary_key: Optional[List[List[str]]]
-    namespace: Optional[str]
+    supported_sync_modes: Optional[List[SyncMode]] = Field(default=None)
+    source_defined_cursor: Optional[bool] = Field(default=None)
+    default_cursor_field: Optional[List[str]] = Field(default=None)
+    source_defined_primary_key: Optional[List[List[str]]] = Field(default=None)
+    namespace: Optional[str] = Field(default=None)
 
 
 class GetJobRequest(ApiBaseModel):
@@ -177,10 +179,10 @@ class ListJobsRequest(ApiBaseModel):
 
 
 class ResourceRequirements(ApiBaseModel):
-    cpu_request: Optional[str]
-    cpu_limit: Optional[str]
-    memory_request: Optional[str]
-    memory_limit: Optional[str]
+    cpu_request: Optional[str] = Field(default=None)
+    cpu_limit: Optional[str] = Field(default=None)
+    memory_request: Optional[str] = Field(default=None)
+    memory_limit: Optional[str] = Field(default=None)
 
     class Config:
         def alias_generator(field_name):
@@ -194,7 +196,7 @@ class JobSpecificResourceRequirements(ApiBaseModel):
 
 class DefinitionResourceRequirements(ApiBaseModel):
     default: ResourceRequirements
-    job_specific: Optional[List[JobSpecificResourceRequirements]]
+    job_specific: Optional[List[JobSpecificResourceRequirements]] = Field(default=None)
 
 
 class CreateSourceDefinitionRequest(ApiBaseModel):
@@ -202,8 +204,8 @@ class CreateSourceDefinitionRequest(ApiBaseModel):
     docker_repository: str
     docker_image_tag: str
     documentation_url: str
-    icon: Optional[str]
-    resource_requirements: Optional[DefinitionResourceRequirements]
+    icon: Optional[str] = Field(default=None)
+    resource_requirements: Optional[DefinitionResourceRequirements] = Field(default=None)
 
 
 class UpdateSourceDefinitionRequest(ApiBaseModel):
@@ -257,13 +259,13 @@ class SourceDefinition(ApiBaseModel):
     name: str
     docker_repository: str
     docker_image_tag: str
-    documentation_url: Optional[str]
-    icon: Optional[str]
-    protocol_version: Optional[str]
-    release_stage: Optional[str]
-    release_date: Optional[str]
-    source_type: Optional[str]
-    resource_requirements: Optional[DefinitionResourceRequirements]
+    documentation_url: Optional[str] = Field(default=None)
+    icon: Optional[str] = Field(default=None)
+    protocol_version: Optional[str] = Field(default=None)
+    release_stage: Optional[str] = Field(default=None)
+    release_date: Optional[str] = Field(default=None)
+    source_type: Optional[str] = Field(default=None)
+    resource_requirements: Optional[DefinitionResourceRequirements] = Field(default=None)
 
 
 class PrivateSourceDefinition(ApiBaseModel):
@@ -278,19 +280,19 @@ class Logs(ApiBaseModel):
 class JobInfo(ApiBaseModel):
     id: str
     config_type: str
-    config_if: Optional[str]
+    config_if: Optional[str] = Field(default=None)
     created_at: int
     ended_at: int
-    succeeded: Optional[bool]
+    succeeded: Optional[bool] = Field(default=None)
     logs: Logs
 
 
 class SourceDefinitionSpecification(ApiBaseModel):
     source_definition_id: str
-    documentation_uri: Optional[str]
+    documentation_uri: Optional[str] = Field(default=None)
     connection_specification: Dict[str, Any]
-    auth_specification: Optional[AuthSpecification]
-    advanced_auth: Optional[AdvancedAuth]
+    auth_specification: Optional[AuthSpecification] = Field(default=None)
+    advanced_auth: Optional[AdvancedAuth] = Field(default=None)
     job_info: JobInfo
 
 
@@ -312,8 +314,8 @@ class CreateSourceRequest(ApiBaseModel):
 
 class UpdateSourceRequest(ApiBaseModel):
     source_id: str
-    connection_configuration: Optional[Dict[str, Any]]
-    name: Optional[str]
+    connection_configuration: Optional[Dict[str, Any]] = Field(default=None)
+    name: Optional[str] = Field(default=None)
 
 
 class CheckSourceConnectionRequest(ApiBaseModel):
@@ -363,17 +365,17 @@ class CloneSourceRequest(ApiBaseModel):
 
 
 class SearchSourceRequest(ApiBaseModel):
-    source_definitionId: Optional[str]
-    source_id: Optional[str]
-    workspace_id: Optional[str]
-    connection_configuration: Optional[Dict[str, Any]]
-    name: Optional[str]
-    source_name: Optional[str]
+    source_definitionId: Optional[str] = Field(default=None)
+    source_id: Optional[str] = Field(default=None)
+    workspace_id: Optional[str] = Field(default=None)
+    connection_configuration: Optional[Dict[str, Any]] = Field(default=None)
+    name: Optional[str] = Field(default=None)
+    source_name: Optional[str] = Field(default=None)
 
 
 class CheckConnectionStatus(ApiBaseModel):
     status: str
-    message: Optional[str]
+    message: Optional[str] = Field(default=None)
     job_info: JobInfo
 
 
@@ -503,42 +505,42 @@ class CreateConnectionRequest(ApiBaseModel):
 
 
 class CloneDestinationRequest(ApiBaseModel):
-    destination_clone_id: Optional[str]
-    destination_configuration: Optional[DestinationConfiguration]
+    destination_clone_id: Optional[str] = Field(default=None)
+    destination_configuration: Optional[DestinationConfiguration] = Field(default=None)
 
 
 class GetDestinationDefinitionSpecificationRequest(ApiBaseModel):
-    destination_definition_id: Optional[str]
-    workspace_id: Optional[str]
+    destination_definition_id: Optional[str] = Field(default=None)
+    workspace_id: Optional[str] = Field(default=None)
 
 
 class ConnectionSchedule(ApiBaseModel):
-    time_unit: Optional[str]
-    units: Optional[int]
+    time_unit: Optional[str] = Field(default=None)
+    units: Optional[int] = Field(default=None)
 
 
 class ConnectionScheduleCron(ApiBaseModel):
-    cron_expression: Optional[str]
-    cron_timezone: Optional[str]
+    cron_expression: Optional[str] = Field(default=None)
+    cron_timezone: Optional[str] = Field(default=None)
 
 
 class ConnectionScheduleData(ApiBaseModel):
-    basic_schedule: Optional[ConnectionSchedule]
-    cron: Optional[ConnectionScheduleCron]
+    basic_schedule: Optional[ConnectionSchedule] = Field(default=None)
+    cron: Optional[ConnectionScheduleCron] = Field(default=None)
 
 
 class ConnectionSyncCatalogStreamConfig(ApiBaseModel):
-    sync_mode: Optional[SyncMode]
+    sync_mode: Optional[SyncMode] = Field(default=None)
     cursor_field: List[str]
-    destination_sync_mode: Optional[DestinationSyncMode]
-    primary_key: Optional[List[List[str]]]
-    alias_name: Optional[str]
-    selected: Optional[bool]
+    destination_sync_mode: Optional[DestinationSyncMode] = Field(default=None)
+    primary_key: Optional[List[List[str]]] = Field(default=None)
+    alias_name: Optional[str] = Field(default=None)
+    selected: Optional[bool] = Field(default=None)
 
 
 class ConnectionSyncCatalogStream(ApiBaseModel):
-    stream: Optional[AirbyteStream]
-    config: Optional[ConnectionSyncCatalogStreamConfig]
+    stream: Optional[AirbyteStream] = Field(default=None)
+    config: Optional[ConnectionSyncCatalogStreamConfig] = Field(default=None)
 
 
 class ConnectionSyncCatalog(ApiBaseModel):
@@ -547,18 +549,18 @@ class ConnectionSyncCatalog(ApiBaseModel):
 
 class UpdateConnectionRequest(ApiBaseModel):
     connection_id: str
-    namespace_definition: Optional[str]
-    namespace_format: Optional[str]
-    name: Optional[str]
-    prefix: Optional[str]
-    operation_ids: Optional[List[str]]
+    namespace_definition: Optional[str] = Field(default=None)
+    namespace_format: Optional[str] = Field(default=None)
+    name: Optional[str] = Field(default=None)
+    prefix: Optional[str] = Field(default=None)
+    operation_ids: Optional[List[str]] = Field(default=None)
     sync_catalog: ConnectionSyncCatalog
-    schedule: Optional[ConnectionSchedule]
-    schedule_type: Optional[str]
-    schedule_data: Optional[ConnectionScheduleData]
+    schedule: Optional[ConnectionSchedule] = Field(default=None)
+    schedule_type: Optional[str] = Field(default=None)
+    schedule_data: Optional[ConnectionScheduleData] = Field(default=None)
     status: str
-    resource_requirements: Optional[ResourceRequirements]
-    source_catalog_id: Optional[str]
+    resource_requirements: Optional[ResourceRequirements] = Field(default=None)
+    source_catalog_id: Optional[str] = Field(default=None)
 
 
 class SlackConfiguration(ApiBaseModel):
@@ -566,27 +568,27 @@ class SlackConfiguration(ApiBaseModel):
 
 
 class Notification(ApiBaseModel):
-    notificationType: Optional[str]
-    send_on_success: Optional[bool]
-    send_on_failure: Optional[bool]
-    slack_configuration: Optional[SlackConfiguration]
-    customerio_configuration: Optional[Dict[str, Any]]
+    notificationType: Optional[str] = Field(default=None)
+    send_on_success: Optional[bool] = Field(default=None)
+    send_on_failure: Optional[bool] = Field(default=None)
+    slack_configuration: Optional[SlackConfiguration] = Field(default=None)
+    customerio_configuration: Optional[Dict[str, Any]] = Field(default=None)
 
 
 class Workspace(ApiBaseModel):
-    workspace_id: Optional[str]
-    customer_id: Optional[str]
-    email: Optional[str]
-    name: Optional[str]
-    slug: Optional[str]
-    initial_setup_complete: Optional[bool]
-    display_setup_wizard: Optional[bool]
-    anonimous_data_collection: Optional[bool]
-    news: Optional[bool]
-    security_updates: Optional[bool]
+    workspace_id: Optional[str] = Field(default=None)
+    customer_id: Optional[str] = Field(default=None)
+    email: Optional[str] = Field(default=None)
+    name: Optional[str] = Field(default=None)
+    slug: Optional[str] = Field(default=None)
+    initial_setup_complete: Optional[bool] = Field(default=None)
+    display_setup_wizard: Optional[bool] = Field(default=None)
+    anonimous_data_collection: Optional[bool] = Field(default=None)
+    news: Optional[bool] = Field(default=None)
+    security_updates: Optional[bool] = Field(default=None)
     notifications: List[Notification]
-    first_completed_sync: Optional[bool]
-    feedback_done: Optional[bool]
+    first_completed_sync: Optional[bool] = Field(default=None)
+    feedback_done: Optional[bool] = Field(default=None)
 
 
 class ConnectionsListRequest(ApiBaseModel):
@@ -609,36 +611,36 @@ class Connection(ApiBaseModel):
     """Describes Airbyte connection between source and destination"""
 
     connection_id: str
-    name: Optional[str]
-    namespace_definition: Optional[str]
-    namespace_format: Optional[str]
-    prefix: Optional[str]
+    name: Optional[str] = Field(default=None)
+    namespace_definition: Optional[str] = Field(default=None)
+    namespace_format: Optional[str] = Field(default=None)
+    prefix: Optional[str] = Field(default=None)
     source_id: str
     destination_id: str
     operation_ids: List[str]
-    sync_catalog: ConnectionSyncCatalog
-    schedule: Optional[ConnectionSchedule]
-    schedule_type: Optional[str]
-    schedule_data: Optional[ConnectionScheduleData]
-    status: Optional[str]
-    resource_requirements: Optional[ResourceRequirements]
-    source_catalog_id: Optional[str]
+    sync_catalog: ConnectionSyncCatalog = Field(default=None)
+    schedule: Optional[ConnectionSchedule] = Field(default=None)
+    schedule_type: Optional[str] = Field(default=None)
+    schedule_data: Optional[ConnectionScheduleData] = Field(default=None)
+    status: Optional[str] = Field(default=None)
+    resource_requirements: Optional[ResourceRequirements] = Field(default=None)
+    source_catalog_id: Optional[str] = Field(default=None)
 
 
 class SearchConnectionsRequest(ApiBaseModel):
-    connection_id: Optional[str]
-    name: Optional[str]
-    namespace_definition: Optional[str]
-    namespace_format: Optional[str]
-    prefix: Optional[str]
-    source_id: Optional[str]
-    destination_id: Optional[str]
-    schedule: Optional[ConnectionSchedule]
-    schedule_type: Optional[str]
-    schedule_data: Optional[ConnectionScheduleData]
-    status: Optional[str]
-    source: Optional[Source]
-    destination: Optional[Destination]
+    connection_id: Optional[str] = Field(default=None)
+    name: Optional[str] = Field(default=None)
+    namespace_definition: Optional[str] = Field(default=None)
+    namespace_format: Optional[str] = Field(default=None)
+    prefix: Optional[str] = Field(default=None)
+    source_id: Optional[str] = Field(default=None)
+    destination_id: Optional[str] = Field(default=None)
+    schedule: Optional[ConnectionSchedule] = Field(default=None)
+    schedule_type: Optional[str] = Field(default=None)
+    schedule_data: Optional[ConnectionScheduleData] = Field(default=None)
+    status: Optional[str] = Field(default=None)
+    source: Optional[Source] = Field(default=None)
+    destination: Optional[Destination] = Field(default=None)
 
 
 class HealthCheckStatus(ApiBaseModel):
@@ -681,7 +683,7 @@ class JobDefinition(ApiBaseModel):
     created_at: int
     updated_at: int
     status: JobStatus
-    reset_config: Optional[JobDefinitionResetConfig]
+    reset_config: Optional[JobDefinitionResetConfig] = Field(default=None)
 
 
 class StreamStat(ApiBaseModel):
