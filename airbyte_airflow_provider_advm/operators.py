@@ -1,13 +1,10 @@
-from abc import ABC
-from datetime import datetime
-from multiprocessing.dummy import connection
-from typing import TYPE_CHECKING, Any, Dict, List, Mapping, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence
+from copy import deepcopy
 
 from airflow import AirflowException
 from airflow.models import BaseOperator
-from jsonpath_ng import Child, jsonpath
+from jsonpath_ng import Child
 from jsonpath_ng.ext import parse
-from pydantic import ValidationError
 
 from airbyte_airflow_provider_advm.hook import AirbyteHook
 from airbyte_airflow_provider_advm.utils import (
@@ -35,15 +32,16 @@ class AirbyteSourceConfigTransformOperator(BaseOperator):
     )
 
     def __init__(
-        self,
-        *,
-        airbyte_conn_id: str = "airbyte_default",
-        source_id: str,
-        config_patch: Dict[str, Any],
-        delete_fields: List[str] = [],
-        api_version: str = "v1",
-        check_config_connection: bool = True,
-        **kwargs,
+            self,
+            *,
+            airbyte_conn_id: str = "airbyte_default",
+            source_id: str,
+            config_patch: Dict[str, Any],
+            delete_fields: Optional[List[str]] = None,
+            api_version: str = "v1",
+            check_config_connection: bool = True,
+            force_update: bool = True,
+            **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         self.airbyte_conn_id = airbyte_conn_id
@@ -51,7 +49,8 @@ class AirbyteSourceConfigTransformOperator(BaseOperator):
         self.api_version = api_version
         self.check_config_connection = check_config_connection
         self.config_patch = config_patch
-        self.delete_fields = delete_fields
+        self.delete_fields = delete_fields if delete_fields is not None else []
+        self.force_update = force_update
 
     def execute(self, context: "Context") -> None:
         # Initiate Airbyte API Hook
@@ -61,7 +60,11 @@ class AirbyteSourceConfigTransformOperator(BaseOperator):
         source = self.hook.get_source(GetSourceRequest(source_id=self.source_id))
 
         current_source_config = source.connection_configuration
+        current_config_initial = deepcopy(current_source_config)
         current_source_config.update(self.config_patch)
+
+        if not self.force_update and current_source_config == current_config_initial:
+            return
 
         for field_to_delete in self.delete_fields:
             try:
@@ -70,7 +73,6 @@ class AirbyteSourceConfigTransformOperator(BaseOperator):
                 pass
 
         is_check_connection_succeeded = True
-        check_connection_job = None
         if self.check_config_connection:
             check_connection_job = self.hook.check_source_connection_for_update(
                 request=CheckConnectionForUpdateRequest(
@@ -98,15 +100,15 @@ class AirbyteResetConnectionOperator(BaseOperator):
     template_fields: Sequence[str] = ("source_id",)
 
     def __init__(
-        self,
-        *,
-        airbyte_conn_id: str = "airbyte_default",
-        connection_id: str,
-        asynchronous: Optional[bool] = False,
-        timeout: Optional[float] = 3600,
-        wait_seconds: float = 3,
-        api_version: str = "v1",
-        **kwargs,
+            self,
+            *,
+            airbyte_conn_id: str = "airbyte_default",
+            connection_id: str,
+            asynchronous: Optional[bool] = False,
+            timeout: Optional[float] = 3600,
+            wait_seconds: float = 3,
+            api_version: str = "v1",
+            **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         self.airbyte_conn_id = airbyte_conn_id
@@ -142,15 +144,15 @@ class LookupSourceDatesFieldsOperator(BaseOperator):
     default_date_format = "%Y-%m-%d"
 
     def __init__(
-        self,
-        *,
-        airbyte_conn_id: str = "airbyte_default",
-        source_id: str,
-        date_from_jsonpath: Optional[str] = None,
-        date_to_jsonpath: Optional[str] = None,
-        date_type_constant_jsonpath: Optional[str] = None,
-        api_version: str = "v1",
-        **kwargs,
+            self,
+            *,
+            airbyte_conn_id: str = "airbyte_default",
+            source_id: str,
+            date_from_jsonpath: Optional[str] = None,
+            date_to_jsonpath: Optional[str] = None,
+            date_type_constant_jsonpath: Optional[str] = None,
+            api_version: str = "v1",
+            **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         self.airbyte_conn_id = airbyte_conn_id
@@ -163,7 +165,7 @@ class LookupSourceDatesFieldsOperator(BaseOperator):
     @property
     def lookup_fields_paths_mapping(self):
         for df_fl_field_name, dt_fl_field_name in zip(
-            first_level_date_from_field_names, first_level_date_to_field_names
+                first_level_date_from_field_names, first_level_date_to_field_names
         ):
             lookup_fields_paths_mapping["date_from"][
                 f"$.{df_fl_field_name}"
@@ -183,9 +185,9 @@ class LookupSourceDatesFieldsOperator(BaseOperator):
         return lookup_fields_paths_mapping
 
     def lookup_dates_fields(
-        self,
-        source_definition_spec: Dict[str, Any],
-        skip_if_date_to_not_found: bool = True,
+            self,
+            source_definition_spec: Dict[str, Any],
+            skip_if_date_to_not_found: bool = True,
     ) -> Dict:
         spec_properties = source_definition_spec["properties"]
 

@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Extra, Field
+from pydantic import BaseModel, Extra, Field
 
 
 class AuthFlowType(str, Enum):
@@ -143,7 +143,6 @@ def to_camel(string: str) -> str:
 
 
 class ApiBaseModel(BaseModel):
-
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
