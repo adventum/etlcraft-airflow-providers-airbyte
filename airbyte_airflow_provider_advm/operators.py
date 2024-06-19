@@ -62,7 +62,7 @@ class AirbyteSourceConfigTransformOperator(BaseOperator):
 
         current_source_config = source.connection_configuration
         current_config_initial = deepcopy(current_source_config)
-        current_source_config.update(self.config_patch)
+        current_source_config.update(json.loads(self.config_patch) if isinstance(self.config_patch, str) else self.config_patch)
 
         if not self.force_update and current_source_config == current_config_initial:
             return
