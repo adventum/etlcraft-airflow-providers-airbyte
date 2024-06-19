@@ -49,8 +49,6 @@ class AirbyteSourceConfigTransformOperator(BaseOperator):
         self.source_id = source_id
         self.api_version = api_version
         self.check_config_connection = check_config_connection
-        if isinstance(config_patch, str):
-            config_patch = json.loads(config_patch)
         self.config_patch = config_patch
         self.delete_fields = delete_fields if delete_fields is not None else []
         self.force_update = force_update
