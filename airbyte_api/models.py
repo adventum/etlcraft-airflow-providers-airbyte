@@ -715,14 +715,14 @@ class JobFailureSummary(ApiBaseModel):
 class JobAttemptDefinition(ApiBaseModel):
     id: int
     status: str
-    created_at: str
-    updated_at: str
-    ended_at: str
-    bytes_synced: str
-    records_synced: str
-    total_stats: StreamStat
-    stream_stats: List[StreamStatsDefinition]
-    failure_summary: JobFailureSummary
+    created_at: int
+    updated_at: int
+    ended_at: Optional[int] = Field(default=None)
+    bytes_synced: Optional[str] = Field(default=None)
+    records_synced: Optional[str] = Field(default=None)
+    total_stats: Optional[StreamStat] = Field(default=None)
+    stream_stats: Optional[List[StreamStatsDefinition]] = Field(default=None)
+    failure_summary: Optional[JobFailureSummary] = Field(default=None)
 
 
 class JobAttemptLogs(ApiBaseModel):
