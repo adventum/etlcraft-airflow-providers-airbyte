@@ -2,8 +2,10 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence
 from copy import deepcopy
 
 import json
+import yaml
 from airflow import AirflowException
 from airflow.models import BaseOperator
+from airflow.models import Variable
 from jsonpath_ng import Child
 from jsonpath_ng.ext import parse
 
@@ -233,3 +235,64 @@ class LookupSourceDatesFieldsOperator(BaseOperator):
                 else:
                     found_field_paths_in_schema["date_format"] = self.default_date_format
         return found_field_paths_in_schema
+
+
+class CollectConfigsOperator(BaseOperator):
+    template_fields: Sequence[str] = ("config_names", "namespace")
+
+    def __init__(
+        self,
+        *,
+        config_names: Optional[list[str]] = None,
+        namespace: Optional[str] = "etlcraft",
+        **kwargs,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.config_names = config_names if config_names else []
+        self.namespace = namespace
+
+    def etlcraft_variable(self, variable_id_without_prefix: str, default_value=None) -> str:
+        variable_id = f"{self.namespace}_{variable_id_without_prefix}"
+        return Variable.get(variable_id, default_var=default_value)
+
+    def load_config(self, config_name: str) -> dict:
+        source_key = f"source_for_config_{config_name}"
+        format_key = f"format_for_config_{config_name}"
+        path_key = f"path_for_config_{config_name}"
+
+        source = self.etlcraft_variable(source_key, "file")
+        file_format = self.etlcraft_variable(format_key, "yaml")
+        path = self.etlcraft_variable(path_key, f"configs/{config_name}")
+
+        if source == "file" and not path.endswith(('.json', '.yml', '.yaml')):
+            extension = ".json" if file_format == "json" else ".yml"
+            path += extension
+
+        if source == "file":
+            with open(path, 'r') as file:
+                if file_format == "json":
+                    config = json.load(file)
+                else:
+                    config = yaml.safe_load(file)
+        elif source == "datacraft_variable":
+            from_datacraft = Variable.get("from_datacraft", default_var={})
+            config = from_datacraft.get(config_name, {})
+        elif source == "other_variable":
+            other_variable_name = self.etlcraft_variable(f"value_for_config_{config_name}")
+            config = Variable.get(other_variable_name, default_var={})
+            if file_format == "json":
+                config = json.loads(config)
+            else:
+                config = yaml.safe_load(config)
+        else:
+            raise ValueError(f"Unknown source type: {source}")
+
+        return config
+
+    def execute(self, context: Context) -> dict:
+        all_configs = {}
+        for config_name in self.config_names:
+            all_configs[config_name] = self.load_config(config_name)
+
+        self.log.info(f"Collected configurations: {all_configs}")
+        return all_configs
