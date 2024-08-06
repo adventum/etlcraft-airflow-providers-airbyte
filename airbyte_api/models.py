@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import BaseModel, Extra, Field
+from pydantic import BaseModel, Field
 
 
 class AuthFlowType(str, Enum):
@@ -20,9 +20,7 @@ class SyncMode(str, Enum):
     incremental: str = "incremental"
 
 
-class _AirbyteStream(BaseModel):
-    class Config:
-        extra = Extra.allow
+class _AirbyteStream(BaseModel, extra="allow"):
 
     name: str
     json_schema: Dict[str, Any]
@@ -33,9 +31,7 @@ class _AirbyteStream(BaseModel):
     namespace: Optional[str] = Field(default=None)
 
 
-class ConfiguredAirbyteStream(BaseModel):
-    class Config:
-        extra = Extra.allow
+class ConfiguredAirbyteStream(BaseModel, extra="allow"):
 
     stream: _AirbyteStream
     sync_mode: SyncMode
@@ -44,10 +40,7 @@ class ConfiguredAirbyteStream(BaseModel):
     primary_key: Optional[List[List[str]]] = Field(default=None)
 
 
-class ConfiguredAirbyteCatalog(BaseModel):
-    class Config:
-        extra = Extra.allow
-
+class ConfiguredAirbyteCatalog(BaseModel, extra="allow"):
     streams: List[ConfiguredAirbyteStream]
 
 
@@ -55,25 +48,24 @@ class AuthType(str, Enum):
     oauth2_0: str = "oauth2.0"
 
 
-class OAuth2Specification(BaseModel):
-    class Config:
-        extra = Extra.allow
-
+class OAuth2Specification(BaseModel, extra="allow"):
     rootObject: Optional[List[Union[str, int]]] = Field(default=None)
     oauthFlowInitParameters: Optional[List[List[str]]] = Field(default=None)
     oauthFlowOutputParameters: Optional[List[List[str]]] = Field(default=None)
 
 
-class OAuthConfigSpecification(BaseModel):
-    class Config:
-        extra = Extra.allow
+class OAuthConfigSpecification(BaseModel, extra="allow"):
 
-    oauth_user_input_from_connector_config_specification: Optional[Dict[str, Any]] = Field(
-        default=None
+    oauth_user_input_from_connector_config_specification: Optional[Dict[str, Any]] = (
+        Field(default=None)
     )
     complete_oauth_output_specification: Optional[Dict[str, Any]] = Field(default=None)
-    complete_oauth_server_input_specification: Optional[Dict[str, Any]] = Field(default=None)
-    complete_oauth_server_output_specification: Optional[Dict[str, Any]] = Field(default=None)
+    complete_oauth_server_input_specification: Optional[Dict[str, Any]] = Field(
+        default=None
+    )
+    complete_oauth_server_output_specification: Optional[Dict[str, Any]] = Field(
+        default=None
+    )
 
 
 class AuthSpecification(BaseModel):
@@ -88,40 +80,25 @@ class AdvancedAuth(BaseModel):
     oauth_config_specification: Optional[OAuthConfigSpecification] = Field(default=None)
 
 
-class StreamDescriptor(BaseModel):
-    class Config:
-        extra = Extra.allow
+class StreamDescriptor(BaseModel, extra="allow"):
 
     name: str
     namespace: Optional[str] = Field(default=None)
 
 
-class AirbyteStateBlob(BaseModel):
-    pass
-
-    class Config:
-        extra = Extra.allow
+class AirbyteStateBlob(BaseModel, extra="allow"): ...
 
 
-class AirbyteStreamState(BaseModel):
-    class Config:
-        extra = Extra.allow
-
+class AirbyteStreamState(BaseModel, extra="allow"):
     stream_descriptor: StreamDescriptor
     stream_state: Optional[AirbyteStateBlob] = Field(default=None)
 
 
-class AirbyteCatalog(BaseModel):
-    class Config:
-        extra = Extra.allow
-
+class AirbyteCatalog(BaseModel, extra="allow"):
     streams: List[_AirbyteStream]
 
 
-class AirbyteGlobalState(BaseModel):
-    class Config:
-        extra = Extra.allow
-
+class AirbyteGlobalState(BaseModel, extra="allow"):
     shared_state: Optional[AirbyteStateBlob] = Field(default=None)
     stream_states: List[AirbyteStreamState]
 
@@ -138,17 +115,17 @@ class JobStatus(str, Enum):
 
 def to_camel(string: str) -> str:
     return "".join(
-        word.capitalize() if word_n > 0 else word for word_n, word in enumerate(string.split("_"))
+        word.capitalize() if word_n > 0 else word
+        for word_n, word in enumerate(string.split("_"))
     )
 
 
-class ApiBaseModel(BaseModel):
+class ApiBaseModel(BaseModel, extra="allow"):
     class Config:
         alias_generator = to_camel
         allow_population_by_field_name = True
         allow_population_by_alias = True
         populate_by_name = True
-        extra = Extra.allow
 
 
 class AirbyteStream(ApiBaseModel):
@@ -184,7 +161,7 @@ class ResourceRequirements(ApiBaseModel):
     memory_limit: Optional[str] = Field(default=None)
 
     class Config:
-        def alias_generator(field_name):
+        def alias_generator(self, field_name):
             return field_name
 
 
@@ -204,7 +181,9 @@ class CreateSourceDefinitionRequest(ApiBaseModel):
     docker_image_tag: str
     documentation_url: str
     icon: Optional[str] = Field(default=None)
-    resource_requirements: Optional[DefinitionResourceRequirements] = Field(default=None)
+    resource_requirements: Optional[DefinitionResourceRequirements] = Field(
+        default=None
+    )
 
 
 class UpdateSourceDefinitionRequest(ApiBaseModel):
@@ -264,7 +243,9 @@ class SourceDefinition(ApiBaseModel):
     release_stage: Optional[str] = Field(default=None)
     release_date: Optional[str] = Field(default=None)
     source_type: Optional[str] = Field(default=None)
-    resource_requirements: Optional[DefinitionResourceRequirements] = Field(default=None)
+    resource_requirements: Optional[DefinitionResourceRequirements] = Field(
+        default=None
+    )
 
 
 class PrivateSourceDefinition(ApiBaseModel):
@@ -437,14 +418,14 @@ class ListPrivateDestinationDefinitionRequest(ApiBaseModel):
 class Destination(ApiBaseModel):
     destination_definition_id: str
     destination_id: str
-    workspase_id: str
+    workspace_id: str
     connection_configuration: Dict[str, Any]
     name: str
     destination_name: str
 
 
 class CreateDestinationRequest(ApiBaseModel):
-    workspase_id: str
+    workspace_id: str
     name: str
     destination_definition_id: str
     connection_configuration: Dict[str, Any]
@@ -457,7 +438,7 @@ class UpdateDestinationRequest(ApiBaseModel):
 
 
 class ListDestinationsRequest(ApiBaseModel):
-    worlspace_id: str
+    workspace_id: str
 
 
 class GetDestinationRequest(ApiBaseModel):
@@ -467,7 +448,7 @@ class GetDestinationRequest(ApiBaseModel):
 class SearchDestinationsRequest(ApiBaseModel):
     destination_definition_id: str
     destination_id: str
-    workspase_id: str
+    workspace_id: str
     connection_configuration: Dict[str, Any]
     name: str
     destination_name: str
@@ -582,7 +563,7 @@ class Workspace(ApiBaseModel):
     slug: Optional[str] = Field(default=None)
     initial_setup_complete: Optional[bool] = Field(default=None)
     display_setup_wizard: Optional[bool] = Field(default=None)
-    anonimous_data_collection: Optional[bool] = Field(default=None)
+    anonymous_data_collection: Optional[bool] = Field(default=None)
     news: Optional[bool] = Field(default=None)
     security_updates: Optional[bool] = Field(default=None)
     notifications: List[Notification]

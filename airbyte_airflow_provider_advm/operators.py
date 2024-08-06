@@ -33,16 +33,16 @@ class AirbyteSourceConfigTransformOperator(BaseOperator):
     )
 
     def __init__(
-            self,
-            *,
-            airbyte_conn_id: str = "airbyte_default",
-            source_id: str,
-            config_patch: Dict[str, Any],
-            delete_fields: Optional[List[str]] = None,
-            api_version: str = "v1",
-            check_config_connection: bool = True,
-            force_update: bool = True,
-            **kwargs,
+        self,
+        *,
+        airbyte_conn_id: str = "airbyte_default",
+        source_id: str,
+        config_patch: Dict[str, Any],
+        delete_fields: Optional[List[str]] = None,
+        api_version: str = "v1",
+        check_config_connection: bool = True,
+        force_update: bool = True,
+        **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         self.airbyte_conn_id = airbyte_conn_id
@@ -55,14 +55,20 @@ class AirbyteSourceConfigTransformOperator(BaseOperator):
 
     def execute(self, context: "Context") -> None:
         # Initiate Airbyte API Hook
-        self.hook = AirbyteHook(airbyte_conn_id=self.airbyte_conn_id, api_version=self.api_version)
+        self.hook = AirbyteHook(
+            airbyte_conn_id=self.airbyte_conn_id, api_version=self.api_version
+        )
 
         # Get Source and it's config by Source ID
         source = self.hook.get_source(GetSourceRequest(source_id=self.source_id))
 
         current_source_config = source.connection_configuration
         current_config_initial = deepcopy(current_source_config)
-        current_source_config.update(json.loads(self.config_patch) if isinstance(self.config_patch, str) else self.config_patch)
+        current_source_config.update(
+            json.loads(self.config_patch)
+            if isinstance(self.config_patch, str)
+            else self.config_patch
+        )
 
         if not self.force_update and current_source_config == current_config_initial:
             return
@@ -101,15 +107,15 @@ class AirbyteResetConnectionOperator(BaseOperator):
     template_fields: Sequence[str] = ("source_id",)
 
     def __init__(
-            self,
-            *,
-            airbyte_conn_id: str = "airbyte_default",
-            connection_id: str,
-            asynchronous: Optional[bool] = False,
-            timeout: Optional[float] = 3600,
-            wait_seconds: float = 3,
-            api_version: str = "v1",
-            **kwargs,
+        self,
+        *,
+        airbyte_conn_id: str = "airbyte_default",
+        connection_id: str,
+        asynchronous: Optional[bool] = False,
+        timeout: Optional[float] = 3600,
+        wait_seconds: float = 3,
+        api_version: str = "v1",
+        **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         self.airbyte_conn_id = airbyte_conn_id
@@ -121,7 +127,9 @@ class AirbyteResetConnectionOperator(BaseOperator):
 
     def execute(self, context: "Context") -> None:
         # Initiate Airbyte API Hook
-        self.hook = AirbyteHook(airbyte_conn_id=self.airbyte_conn_id, api_version=self.api_version)
+        self.hook = AirbyteHook(
+            airbyte_conn_id=self.airbyte_conn_id, api_version=self.api_version
+        )
 
         detailed_job: DetailedJob = self.hook.reset_connection(
             request=ResetConnectionRequest(connection_id=self.connection_id)
@@ -145,15 +153,15 @@ class LookupSourceDatesFieldsOperator(BaseOperator):
     default_date_format = "%Y-%m-%d"
 
     def __init__(
-            self,
-            *,
-            airbyte_conn_id: str = "airbyte_default",
-            source_id: str,
-            date_from_jsonpath: Optional[str] = None,
-            date_to_jsonpath: Optional[str] = None,
-            date_type_constant_jsonpath: Optional[str] = None,
-            api_version: str = "v1",
-            **kwargs,
+        self,
+        *,
+        airbyte_conn_id: str = "airbyte_default",
+        source_id: str,
+        date_from_jsonpath: Optional[str] = None,
+        date_to_jsonpath: Optional[str] = None,
+        date_type_constant_jsonpath: Optional[str] = None,
+        api_version: str = "v1",
+        **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         self.airbyte_conn_id = airbyte_conn_id
@@ -166,7 +174,7 @@ class LookupSourceDatesFieldsOperator(BaseOperator):
     @property
     def lookup_fields_paths_mapping(self):
         for df_fl_field_name, dt_fl_field_name in zip(
-                first_level_date_from_field_names, first_level_date_to_field_names
+            first_level_date_from_field_names, first_level_date_to_field_names
         ):
             lookup_fields_paths_mapping["date_from"][
                 f"$.{df_fl_field_name}"
@@ -186,9 +194,9 @@ class LookupSourceDatesFieldsOperator(BaseOperator):
         return lookup_fields_paths_mapping
 
     def lookup_dates_fields(
-            self,
-            source_definition_spec: Dict[str, Any],
-            skip_if_date_to_not_found: bool = True,
+        self,
+        source_definition_spec: Dict[str, Any],
+        skip_if_date_to_not_found: bool = True,
     ) -> Dict:
         spec_properties = source_definition_spec["properties"]
 
@@ -198,9 +206,9 @@ class LookupSourceDatesFieldsOperator(BaseOperator):
             for pattern in self.lookup_fields_paths_mapping[field_type].keys():
                 jsonpath_pattern: Child = parse(pattern)
                 if jsonpath_pattern.find(spec_properties):
-                    found_field_paths_in_schema[field_type] = self.lookup_fields_paths_mapping[
-                        field_type
-                    ][pattern]
+                    found_field_paths_in_schema[field_type] = (
+                        self.lookup_fields_paths_mapping[field_type][pattern]
+                    )
                     if field_type == "date_type_const":
                         available_date_type_consts = [
                             found_const.value
@@ -208,7 +216,9 @@ class LookupSourceDatesFieldsOperator(BaseOperator):
                         ]
                         for const in self.custom_date_constants:
                             if const in available_date_type_consts:
-                                found_field_paths_in_schema["custom_date_constant"] = const
+                                found_field_paths_in_schema["custom_date_constant"] = (
+                                    const
+                                )
                     found_jsonpath_pattern = jsonpath_pattern
 
                     break
@@ -219,17 +229,28 @@ class LookupSourceDatesFieldsOperator(BaseOperator):
                         raise AirflowException(
                             f"{field_type} field not found in source defined specification."
                         )
-            if field_type in found_field_paths_in_schema.keys() and field_type == "date_from":
-                date_from_field: Dict = found_jsonpath_pattern.find(spec_properties)[0].value
+            if (
+                field_type in found_field_paths_in_schema.keys()
+                and field_type == "date_from"
+            ):
+                date_from_field: Dict = found_jsonpath_pattern.find(spec_properties)[
+                    0
+                ].value
                 found_field_paths_in_schema["date_format"] = None
                 found_date_format_from_pattern = dates_format_pattern_mapping.get(
                     date_from_field.get("pattern")
                 )
 
                 if date_from_field.get("format") == "date-time":
-                    found_field_paths_in_schema["date_format"] = self.default_date_format
+                    found_field_paths_in_schema["date_format"] = (
+                        self.default_date_format
+                    )
                 elif found_date_format_from_pattern:
-                    found_field_paths_in_schema["date_format"] = found_date_format_from_pattern
+                    found_field_paths_in_schema["date_format"] = (
+                        found_date_format_from_pattern
+                    )
                 else:
-                    found_field_paths_in_schema["date_format"] = self.default_date_format
+                    found_field_paths_in_schema["date_format"] = (
+                        self.default_date_format
+                    )
         return found_field_paths_in_schema
