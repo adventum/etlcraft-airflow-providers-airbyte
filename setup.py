@@ -2,7 +2,7 @@
 
 from setuptools import find_namespace_packages, setup
 
-version = "1.3.4"
+version = "1.3.5"
 
 setup(
     name="airbyte-airflow-provider-advm",
