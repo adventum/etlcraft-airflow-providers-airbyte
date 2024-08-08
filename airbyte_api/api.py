@@ -107,14 +107,20 @@ class AirbyteApi:
         Returns:
             requests.Response: request response object
         """
-        json_ = data.dict(exclude_none=True, exclude_unset=True, by_alias=True) if data else None
+        json_ = (
+            data.model_dump(exclude_none=True, exclude_unset=True, by_alias=True)
+            if data
+            else None
+        )
         response = self.session.request(
             method=request_method, url=f"{self.airbyte_url_base}/{endpoint}", json=json_
         )
         try:
             response.raise_for_status()
         except:
-            raise Exception(f"Airbyte API Error (code: {response.status_code}): {response.text}")
+            raise Exception(
+                f"Airbyte API Error (code: {response.status_code}): {response.text}"
+            )
         return response
 
     def health_check(self) -> bool:
@@ -123,7 +129,9 @@ class AirbyteApi:
         Returns:
             bool: Is Airbyte webserver available to provide requests and jobs
         """
-        return self._api_request(endpoint="health", request_method="GET").json()["available"]
+        return self._api_request(endpoint="health", request_method="GET").json()[
+            "available"
+        ]
 
     def list_workspaces(self) -> List[Workspace]:
         """List all workspaces registered in the current Airbyte deployment
@@ -132,11 +140,15 @@ class AirbyteApi:
             List[Workspace]: List of all workspaces registered in the current Airbyte deployment
         """
         return [
-            Workspace.parse_obj(source_definition_obj)
-            for source_definition_obj in self._api_request("workspaces/list").json()["workspaces"]
+            Workspace.model_validate(source_definition_obj)
+            for source_definition_obj in self._api_request("workspaces/list").json()[
+                "workspaces"
+            ]
         ]
 
-    def create_source_definition(self, request: CreateSourceDefinitionRequest) -> SourceDefinition:
+    def create_source_definition(
+        self, request: CreateSourceDefinitionRequest
+    ) -> SourceDefinition:
         """Creates a Source Definition
 
         Args:
@@ -145,11 +157,13 @@ class AirbyteApi:
         Returns:
             SourceDefinition: Source Definition model
         """
-        return SourceDefinition.parse_obj(
+        return SourceDefinition.model_validate(
             self._api_request("source_definitions/create", data=request).json()
         )
 
-    def update_source_definition(self, request: UpdateSourceDefinitionRequest) -> SourceDefinition:
+    def update_source_definition(
+        self, request: UpdateSourceDefinitionRequest
+    ) -> SourceDefinition:
         """Update the SourceDefinition. Currently, the only allowed attribute to
         update is the default docker image version.
 
@@ -159,7 +173,7 @@ class AirbyteApi:
         Returns:
             SourceDefinition: Source Definition model
         """
-        return SourceDefinition.parse_obj(
+        return SourceDefinition.model_validate(
             self._api_request("source_definitions/update", data=request).json()
         )
 
@@ -170,10 +184,10 @@ class AirbyteApi:
             List[SourceDefinition]: List of Source Definition models
         """
         return [
-            SourceDefinition.parse_obj(source_definition_obj)
-            for source_definition_obj in self._api_request("source_definitions/list").json()[
-                "sourceDefinitions"
-            ]
+            SourceDefinition.model_validate(source_definition_obj)
+            for source_definition_obj in self._api_request(
+                "source_definitions/list"
+            ).json()["sourceDefinitions"]
         ]
 
     def list_latest_source_definitions(self) -> List[SourceDefinition]:
@@ -184,13 +198,15 @@ class AirbyteApi:
             List[SourceDefinition]: List of Source Definition models
         """
         return [
-            SourceDefinition.parse_obj(source_definition_obj)
-            for source_definition_obj in self._api_request("source_definitions/list_latest").json()[
-                "sourceDefinitions"
-            ]
+            SourceDefinition.model_validate(source_definition_obj)
+            for source_definition_obj in self._api_request(
+                "source_definitions/list_latest"
+            ).json()["sourceDefinitions"]
         ]
 
-    def get_source_definition(self, request: GetSourceDefinitionRequest) -> SourceDefinition:
+    def get_source_definition(
+        self, request: GetSourceDefinitionRequest
+    ) -> SourceDefinition:
         """Get specific source definition by it's ID
 
         Args:
@@ -199,11 +215,13 @@ class AirbyteApi:
         Returns:
             SourceDefinition: Source Definition model
         """
-        return SourceDefinition.parse_obj(
+        return SourceDefinition.model_validate(
             self._api_request("source_definitions/get", data=request).json()
         )
 
-    def delete_source_definition(self, request: DeleteSourceDefinitionRequest) -> SourceDefinition:
+    def delete_source_definition(
+        self, request: DeleteSourceDefinitionRequest
+    ) -> SourceDefinition:
         """Delete a specific Source Definition by it's ID
 
         Args:
@@ -212,7 +230,7 @@ class AirbyteApi:
         Returns:
             SourceDefinition: Source Definition model
         """
-        return SourceDefinition.parse_obj(
+        return SourceDefinition.model_validate(
             self._api_request("source_definitions/delete", data=request).json()
         )
 
@@ -230,7 +248,7 @@ class AirbyteApi:
             List[PrivateSourceDefinition]: List of PrivateSourceDefinition models
         """
         return [
-            PrivateSourceDefinition.parse_obj(private_source_definition_obj)
+            PrivateSourceDefinition.model_validate(private_source_definition_obj)
             for private_source_definition_obj in self._api_request(
                 "source_definitions/list_private", data=request
             ).json()["sourceDefinitions"]
@@ -248,7 +266,7 @@ class AirbyteApi:
             List[SourceDefinition]: List of SourceDefinition models
         """
         return [
-            SourceDefinition.parse_obj(source_definition_obj)
+            SourceDefinition.model_validate(source_definition_obj)
             for source_definition_obj in self._api_request(
                 "source_definitions/list_for_workspace", data=request
             ).json()["sourceDefinitions"]
@@ -258,7 +276,7 @@ class AirbyteApi:
         self, request: CreateCustomSourceDefinitionForWorkspaceRequest
     ) -> SourceDefinition:
         """Creates a custom sourceDefinition for the given workspace"""
-        return SourceDefinition.parse_obj(
+        return SourceDefinition.model_validate(
             self._api_request("source_definitions/create_custom", data=request).json()
         )
 
@@ -266,15 +284,17 @@ class AirbyteApi:
         self, request: GetSourceDefinitionForWorkspaceRequest
     ) -> SourceDefinition:
         """Get a sourceDefinition that is configured for the given workspace"""
-        return SourceDefinition.parse_obj(
-            self._api_request("source_definitions/get_for_workspace", data=request).json()
+        return SourceDefinition.model_validate(
+            self._api_request(
+                "source_definitions/get_for_workspace", data=request
+            ).json()
         )
 
     def update_custom_source_definition_for_workspace(
         self, request: UpdateCustomSourceDefinitionForWorkspaceRequest
     ) -> SourceDefinition:
         """Update a custom sourceDefinition for the given workspace"""
-        return SourceDefinition.parse_obj(
+        return SourceDefinition.model_validate(
             self._api_request("source_definitions/update_custom", data=request).json()
         )
 
@@ -288,8 +308,10 @@ class AirbyteApi:
         self, request: GrantPrivateSourceDefinitionForWorkspaceRequest
     ) -> PrivateSourceDefinition:
         """Grant a private, non-custom sourceDefinition to a given workspace"""
-        return PrivateSourceDefinition.parse_obj(
-            self._api_request("source_definitions/grant_definition", data=request).json()
+        return PrivateSourceDefinition.model_validate(
+            self._api_request(
+                "source_definitions/grant_definition", data=request
+            ).json()
         )
 
     def revoke_grant_private_source_definition_for_workspace(
@@ -302,39 +324,55 @@ class AirbyteApi:
         self, request: GetSourceDefinitionSpecificationRequest
     ) -> SourceDefinitionSpecification:
         """Get specification for a SourceDefinition."""
-        return SourceDefinitionSpecification.parse_obj(
-            self._api_request("source_definition_specifications/get", data=request).json()
+        return SourceDefinitionSpecification.model_validate(
+            self._api_request(
+                "source_definition_specifications/get", data=request
+            ).json()
         )
 
     def create_source(self, request: CreateSourceRequest) -> Source:
         """Create a source"""
-        return Source.parse_obj(self._api_request("sources/create", data=request).json())
+        return Source.model_validate(
+            self._api_request("sources/create", data=request).json()
+        )
 
     def update_source(self, request: UpdateSourceRequest) -> Source:
         """Update a source"""
-        return Source.parse_obj(self._api_request("sources/update", data=request).json())
+        return Source.model_validate(
+            self._api_request("sources/update", data=request).json()
+        )
 
-    def list_workspace_sources(self, request: ListWorkspaceSourcesRequest) -> List[Source]:
+    def list_workspace_sources(
+        self, request: ListWorkspaceSourcesRequest
+    ) -> List[Source]:
         """List sources for workspace. Does not return deleted sources."""
         return [
-            Source.parse_obj(source)
-            for source in self._api_request("sources/list", data=request).json()["sources"]
+            Source.model_validate(source)
+            for source in self._api_request("sources/list", data=request).json()[
+                "sources"
+            ]
         ]
 
     def get_source(self, request: GetSourceRequest) -> Source:
         """Get source"""
-        return Source.parse_obj(self._api_request("sources/get", data=request).json())
+        return Source.model_validate(
+            self._api_request("sources/get", data=request).json()
+        )
 
     def search_source(self, request: SearchSourceRequest) -> List[Source]:
         """Search sources"""
         return [
-            Source.parse_obj(source)
-            for source in self._api_request("sources/search", data=request).json()["sources"]
+            Source.model_validate(source)
+            for source in self._api_request("sources/search", data=request).json()[
+                "sources"
+            ]
         ]
 
     def clone_source(self, request: CloneSourceRequest) -> Source:
         """Clone source"""
-        return Source.parse_obj(self._api_request("sources/clone", data=request).json())
+        return Source.model_validate(
+            self._api_request("sources/clone", data=request).json()
+        )
 
     def delete_source(self, request: DeleteSourceRequest) -> None:
         """Delete a source"""
@@ -344,7 +382,7 @@ class AirbyteApi:
         self, request: CheckSourceConnectionRequest
     ) -> CheckConnectionStatus:
         """Check connection to the source"""
-        return CheckConnectionStatus.parse_obj(
+        return CheckConnectionStatus.model_validate(
             self._api_request("sources/check_connection", data=request).json()
         )
 
@@ -352,15 +390,17 @@ class AirbyteApi:
         self, request: CheckConnectionForUpdateRequest
     ) -> CheckConnectionStatus:
         """Check connection for a proposed update to a source"""
-        return CheckConnectionStatus.parse_obj(
-            self._api_request("sources/check_connection_for_update", data=request).json()
+        return CheckConnectionStatus.model_validate(
+            self._api_request(
+                "sources/check_connection_for_update", data=request
+            ).json()
         )
 
     def discover_source_schema(
         self, request: DiscoverSourceSchemaRequest
     ) -> SourceDiscoverSchemaJob:
         """Discover the schema catalog of the source"""
-        return SourceDiscoverSchemaJob.parse_obj(
+        return SourceDiscoverSchemaJob.model_validate(
             self._api_request("sources/discover_schema", data=request).json()
         )
 
@@ -368,7 +408,7 @@ class AirbyteApi:
         self, request: CreateDestinationDefinitionRequest
     ) -> DestinationDefinition:
         """Creates a destinationsDefinition"""
-        return DestinationDefinition.parse_obj(
+        return DestinationDefinition.model_validate(
             self._api_request("destination_definitions/create", data=request).json()
         )
 
@@ -376,7 +416,7 @@ class AirbyteApi:
         self, request: UpdateDestinationDefinitionRequest
     ) -> DestinationDefinition:
         """Update destinationDefinition"""
-        return DestinationDefinition.parse_obj(
+        return DestinationDefinition.model_validate(
             self._api_request("destination_definitions/update", data=request).json()
         )
 
@@ -386,7 +426,7 @@ class AirbyteApi:
         Airbyte deployment is configured to use
         """
         return [
-            DestinationDefinition.parse_obj(source)
+            DestinationDefinition.model_validate(source)
             for source in self._api_request(
                 "destination_definitions/list",
             ).json()["destinationDefinitions"]
@@ -398,7 +438,7 @@ class AirbyteApi:
         Guaranteed to retrieve the latest information on supported destinations.
         """
         return [
-            DestinationDefinition.parse_obj(destination_definition)
+            DestinationDefinition.model_validate(destination_definition)
             for destination_definition in self._api_request(
                 "destination_definitions/list_latest",
             ).json()["destinationDefinitions"]
@@ -408,11 +448,13 @@ class AirbyteApi:
         self, request: GetDestinationDefinitionRequest
     ) -> DestinationDefinition:
         """Get destinationDefinition"""
-        return DestinationDefinition.parse_obj(
+        return DestinationDefinition.model_validate(
             self._api_request("destination_definitions/get", data=request).json()
         )
 
-    def delete_destination_definition(self, request: DeleteDestinationDefinitionRequest) -> None:
+    def delete_destination_definition(
+        self, request: DeleteDestinationDefinitionRequest
+    ) -> None:
         """Delete a destination definition"""
         self._api_request("destination_definitions/delete", data=request)
 
@@ -425,7 +467,7 @@ class AirbyteApi:
         has a grant for using the definition
         """
         return [
-            DestinationDefinition.parse_obj(destination_definition)
+            DestinationDefinition.model_validate(destination_definition)
             for destination_definition in self._api_request(
                 "destination_definitions/list_private", data=request
             ).json()["destinationDefinitions"]
@@ -434,99 +476,125 @@ class AirbyteApi:
     def get_destination_definition_specification(
         self, request: GetDestinationDefinitionSpecificationRequest
     ) -> DestinationDefinitionSpecification:
-        return DestinationDefinitionSpecification.parse_obj(
-            self._api_request("destination_definition_specifications/get", data=request).json()
+        return DestinationDefinitionSpecification.model_validate(
+            self._api_request(
+                "destination_definition_specifications/get", data=request
+            ).json()
         )
 
     def create_destination(self, request: CreateDestinationRequest) -> Destination:
-        return Destination.parse_obj(self._api_request("destinations/create", data=request).json())
+        return Destination.model_validate(
+            self._api_request("destinations/create", data=request).json()
+        )
 
     def update_destination(self, request: UpdateDestinationRequest) -> Destination:
-        return Destination.parse_obj(self._api_request("destinations/update", data=request).json())
+        return Destination.model_validate(
+            self._api_request("destinations/update", data=request).json()
+        )
 
     def list_destinations(self, request: ListDestinationsRequest) -> List[Destination]:
         return [
-            Destination.parse_obj(destination)
-            for destination in self._api_request("destinations/list", data=request).json()[
-                "destinations"
-            ]
+            Destination.model_validate(destination)
+            for destination in self._api_request(
+                "destinations/list", data=request
+            ).json()["destinations"]
         ]
 
     def get_destination(self, request: GetDestinationRequest) -> Destination:
-        return Destination.parse_obj(self._api_request("destinations/get", data=request).json())
+        return Destination.model_validate(
+            self._api_request("destinations/get", data=request).json()
+        )
 
-    def search_destinations(self, request: SearchDestinationsRequest) -> List[Destination]:
+    def search_destinations(
+        self, request: SearchDestinationsRequest
+    ) -> List[Destination]:
         return [
-            Destination.parse_obj(destination)
-            for destination in self._api_request("destinations/search", data=request).json()[
-                "destinations"
-            ]
+            Destination.model_validate(destination)
+            for destination in self._api_request(
+                "destinations/search", data=request
+            ).json()["destinations"]
         ]
 
     def check_destination_connection(
         self, request: CheckDestinationConnectionRequest
     ) -> CheckConnectionStatus:
-        return CheckConnectionStatus.parse_obj(
+        return CheckConnectionStatus.model_validate(
             self._api_request("destinations/check_connection", data=request).json()
         )
 
     def check_destination_connection_for_update(
         self, request: CheckDestinationConnectionForUpdateRequest
     ) -> CheckConnectionStatus:
-        return CheckConnectionStatus.parse_obj(
-            self._api_request("destinations/check_connection_for_update", data=request).json()
+        return CheckConnectionStatus.model_validate(
+            self._api_request(
+                "destinations/check_connection_for_update", data=request
+            ).json()
         )
 
     def delete_destination(self, request: DeleteDestinationRequest) -> None:
         self._api_request("destinations/delete", data=request)
 
     def clone_destination(self, request: CloneDestinationRequest) -> Destination:
-        return Destination.parse_obj(self._api_request("destinations/clone", data=request).json())
+        return Destination.model_validate(
+            self._api_request("destinations/clone", data=request).json()
+        )
 
     def create_connection(self, request: Connection) -> Connection:
-        return Connection.parse_obj(self._api_request("connections/create", data=request).json())
+        return Connection.model_validate(
+            self._api_request("connections/create", data=request).json()
+        )
 
     def update_connection(self, request: UpdateConnectionRequest) -> Connection:
-        return Connection.parse_obj(self._api_request("connections/update", data=request).json())
+        return Connection.model_validate(
+            self._api_request("connections/update", data=request).json()
+        )
 
     def list_connections(self, request: ConnectionsListRequest) -> List[Connection]:
         return [
-            Connection.parse_obj(connection)
-            for connection in self._api_request("connections/list", data=request).json()[
-                "connections"
-            ]
+            Connection.model_validate(connection)
+            for connection in self._api_request(
+                "connections/list", data=request
+            ).json()["connections"]
         ]
 
-    def list_all_workspace_connections(self, request: ListAllConnectionRequest) -> List[Connection]:
+    def list_all_workspace_connections(
+        self, request: ListAllConnectionRequest
+    ) -> List[Connection]:
         """List connections for workspace, including deleted connections."""
         return [
-            Connection.parse_obj(connection)
-            for connection in self._api_request("connections/list_all", data=request).json()[
-                "connections"
-            ]
+            Connection.model_validate(connection)
+            for connection in self._api_request(
+                "connections/list_all", data=request
+            ).json()["connections"]
         ]
 
     def get_connection(self, request: GetConnectionRequest) -> Connection:
-        return Connection.parse_obj(self._api_request("connections/get", data=request).json())
+        return Connection.model_validate(
+            self._api_request("connections/get", data=request).json()
+        )
 
-    def get_connection_state(self, request: GetConnectionStateRequest) -> ConnectionState:
+    def get_connection_state(
+        self, request: GetConnectionStateRequest
+    ) -> ConnectionState:
         """Fetch the current state for a connection."""
-        return ConnectionState.parse_obj(self._api_request("state/get", data=request).json())
+        return ConnectionState.model_validate(
+            self._api_request("state/get", data=request).json()
+        )
 
     def create_or_update_connection_state(
         self, request: CreateOrUpdateConnectionStateRequest
     ) -> ConnectionState:
         """Create or update the state for a connection."""
-        return ConnectionState.parse_obj(
+        return ConnectionState.model_validate(
             self._api_request("state/create_or_update", data=request).json()
         )
 
     def search_connections(self, request: SearchConnectionsRequest) -> List[Connection]:
         return [
-            Connection.parse_obj(connection)
-            for connection in self._api_request("connections/search", data=request).json()[
-                "connections"
-            ]
+            Connection.model_validate(connection)
+            for connection in self._api_request(
+                "connections/search", data=request
+            ).json()["connections"]
         ]
 
     def delete_connection(self, request: DeleteConnectionRequest) -> None:
@@ -534,10 +602,14 @@ class AirbyteApi:
         self._api_request("connections/delete", data=request)
 
     def sync_connection(self, request: SyncConnectionRequest) -> DetailedJob:
-        return DetailedJob.parse_obj(self._api_request("connections/sync", data=request).json())
+        return DetailedJob.model_validate(
+            self._api_request("connections/sync", data=request).json()
+        )
 
     def reset_connection(self, request: ResetConnectionRequest) -> DetailedJob:
-        return DetailedJob.parse_obj(self._api_request("connections/reset", data=request).json())
+        return DetailedJob.model_validate(
+            self._api_request("connections/reset", data=request).json()
+        )
 
     def get_connection_state_type(self, request: GetConnectionStateTypeRequest) -> str:
         """Fetch the current state type for a connection."""
@@ -545,16 +617,24 @@ class AirbyteApi:
 
     def get_job(self, request: GetJobRequest) -> DetailedJob:
         """Get information about job"""
-        return DetailedJob.parse_obj(self._api_request("jobs/get", data=request).json())
+        return DetailedJob.model_validate(
+            self._api_request("jobs/get", data=request).json()
+        )
 
     def list_jobs(self, request: ListJobsRequest) -> List[DetailedJob]:
         return [
-            DetailedJob.parse_obj(connection)
-            for connection in self._api_request("jobs/list", data=request).json()["jobs"]
+            DetailedJob.model_validate(connection)
+            for connection in self._api_request("jobs/list", data=request).json()[
+                "jobs"
+            ]
         ]
 
     def get_light_job(self, request: GetJobRequest) -> Job:
-        return Job.parse_obj(self._api_request("jobs/get_light", data=request).json())
+        return Job.model_validate(
+            self._api_request("jobs/get_light", data=request).json()
+        )
 
     def cancel_job(self, request: CancelJobRequest) -> DetailedJob:
-        return DetailedJob.parse_obj(self._api_request("jobs/cancel", data=request).json())
+        return DetailedJob.model_validate(
+            self._api_request("jobs/cancel", data=request).json()
+        )
