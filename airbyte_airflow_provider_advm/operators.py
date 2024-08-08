@@ -2,8 +2,10 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence
 from copy import deepcopy
 
 import json
+import yaml
 from airflow import AirflowException
 from airflow.models import BaseOperator
+from airflow.models import Variable
 from jsonpath_ng import Child
 from jsonpath_ng.ext import parse
 
@@ -13,6 +15,7 @@ from airbyte_airflow_provider_advm.utils import (
     first_level_date_from_field_names,
     first_level_date_to_field_names,
     lookup_fields_paths_mapping,
+    etlcraft_variable,
 )
 from airbyte_api.models import (
     CheckConnectionForUpdateRequest,
@@ -254,3 +257,308 @@ class LookupSourceDatesFieldsOperator(BaseOperator):
                         self.default_date_format
                     )
         return found_field_paths_in_schema
+
+
+class CollectConfigsOperator(BaseOperator):
+    template_fields: Sequence[str] = ("config_names", "namespace")
+
+    def __init__(
+        self,
+        *,
+        config_names: Optional[list[str]] = None,
+        namespace: Optional[str] = "etlcraft",
+        entire_datacraft_variable: Optional[bool] = True,
+        **kwargs,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.config_names = config_names if config_names else []
+        self.namespace = namespace
+        self.entire_datacraft_variable = entire_datacraft_variable
+
+    def load_config(self, config_name: str) -> dict:
+        source_key = f"source_for_config_{config_name}"
+        format_key = f"format_for_config_{config_name}"
+        path_key = f"path_for_config_{config_name}"
+
+        source = etlcraft_variable(source_key, self.namespace, default_value="file")
+        file_format = etlcraft_variable(format_key, self.namespace, default_value="yaml")
+        path = etlcraft_variable(path_key, self.namespace, default_value=f"configs/{config_name}")
+
+        if source == "file" and not path.endswith(('.json', '.yml', '.yaml')):
+            extension = ".json" if file_format == "json" else ".yml"
+            path += extension
+
+        if source == "file":
+            with open(path, 'r') as file:
+                if file_format == "json":
+                    config = json.load(file)
+                else:
+                    config = yaml.safe_load(file)
+        elif source == "datacraft_variable":
+            str_datacraft_variable = etlcraft_variable(config_name, self.namespace)
+            json_datacraft_variable = json.loads(str_datacraft_variable)
+
+            if self.entire_datacraft_variable:
+                config = json_datacraft_variable
+            else:
+                config = json_datacraft_variable.get(path, {})
+        elif source == "other_variable":
+            other_variable_name = etlcraft_variable(f"value_for_config_{config_name}")
+            config = Variable.get(path, default_var=other_variable_name)
+            if file_format == "json":
+                config = json.loads(config)
+            else:
+                config = yaml.safe_load(config)
+        else:
+            raise ValueError(f"Unknown source type: {source}")
+
+        return config
+
+    def execute(self, context: "Context") -> dict:
+        all_configs = {}
+        for config_name in self.config_names:
+            all_configs[config_name] = self.load_config(config_name)
+
+        self.log.info(f"Collected configurations: {all_configs}")
+        return all_configs
+
+
+class AirbyteGeneralOperator(BaseOperator):
+    def __init__(
+        self,
+        *,
+        airbyte_conn_id: str = "airbyte_default",
+        endpoint: str,
+        method: str = "POST",
+        request_params: Optional[Dict[str, Any]] = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.airbyte_conn_id = airbyte_conn_id
+        self.endpoint = endpoint
+        self.method = method
+        self.request_params = request_params or {}
+
+    def execute(self, context: "Context") -> Any:
+        self.log.info(f"Executing {self.method} request to {self.endpoint}")
+
+        # Get Airbyte connection details
+        hook = AirbyteHook(airbyte_conn_id=self.airbyte_conn_id)
+        response = hook._api_request(
+            endpoint=self.endpoint,
+            data=self.request_params,
+            request_method=self.method
+        )
+
+        if not response:
+            raise AirflowException("Failed to get a valid response from Airbyte API")
+
+        return response
+
+
+class AirbyteCreateSourceOperator(BaseOperator):
+    def __init__(
+        self,
+        *,
+        airbyte_conn_id: str = "airbyte_default",
+        source_definition_id: str,
+        name: str,
+        connection_configuration: Dict[str, Any],
+        workspace_id: str,
+        **kwargs,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.airbyte_conn_id = airbyte_conn_id
+        self.source_definition_id = source_definition_id
+        self.name = name
+        self.connection_configuration = connection_configuration
+        self.workspace_id = workspace_id
+
+    def execute(self, context: "Context") -> Any:
+        self.log.info(f"Creating Airbyte source {self.name}")
+
+        hook = AirbyteHook(airbyte_conn_id=self.airbyte_conn_id)
+        payload = {
+            "sourceDefinitionId": self.source_definition_id,
+            "connectionConfiguration": self.connection_configuration,
+            "workspaceId": self.workspace_id,
+            "name": self.name,
+        }
+
+        response = hook._api_request(
+            endpoint="sources/create",
+            data=payload,
+            request_method="POST"
+        )
+
+        if not response:
+            raise AirflowException("Failed to create source")
+
+        return response
+
+
+class AirbyteCreateDestinationOperator(BaseOperator):
+    def __init__(
+        self,
+        *,
+        airbyte_conn_id: str = "airbyte_default",
+        destination_definition_id: str,
+        name: str,
+        connection_configuration: Dict[str, Any],
+        workspace_id: str,
+        **kwargs,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.airbyte_conn_id = airbyte_conn_id
+        self.destination_definition_id = destination_definition_id
+        self.name = name
+        self.connection_configuration = connection_configuration
+        self.workspace_id = workspace_id
+
+    def execute(self, context: "Context") -> Any:
+        self.log.info(f"Creating Airbyte destination {self.name}")
+
+        hook = AirbyteHook(airbyte_conn_id=self.airbyte_conn_id)
+        payload = {
+            "destinationDefinitionId": self.destination_definition_id,
+            "connectionConfiguration": self.connection_configuration,
+            "workspaceId": self.workspace_id,
+            "name": self.name,
+        }
+
+        response = hook._api_request(
+            endpoint="destinations/create",
+            data=payload,
+            request_method="POST"
+        )
+
+        if not response:
+            raise AirflowException("Failed to create destination")
+
+        return response
+
+
+class AirbyteCreateConnectionOperator(BaseOperator):
+    def __init__(
+        self,
+        *,
+        airbyte_conn_id: str = "airbyte_default",
+        source_id: str,
+        destination_id: str,
+        sync_catalog: Dict[str, Any],
+        **kwargs,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.airbyte_conn_id = airbyte_conn_id
+        self.source_id = source_id
+        self.destination_id = destination_id
+        self.sync_catalog = sync_catalog
+
+    def execute(self, context: "Context") -> Any:
+        self.log.info(f"Creating Airbyte connection from source {self.source_id} to destination {self.destination_id}")
+
+        hook = AirbyteHook(airbyte_conn_id=self.airbyte_conn_id)
+        payload = {
+            "sourceId": self.source_id,
+            "destinationId": self.destination_id,
+            "syncCatalog": self.sync_catalog,
+        }
+
+        response = hook._api_request(
+            endpoint="connections/create",
+            data=payload,
+            request_method="POST"
+        )
+
+        if not response:
+            raise AirflowException("Failed to create connection")
+
+        return response
+
+
+class AirbyteCreateSourceDefinitionOperator(BaseOperator):
+    def __init__(
+        self,
+        *,
+        airbyte_conn_id: str = "airbyte_default",
+        source_definition: Dict[str, Any],
+        **kwargs,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.airbyte_conn_id = airbyte_conn_id
+        self.source_definition = source_definition
+
+    def execute(self, context: "Context") -> Any:
+        self.log.info(f"Creating Airbyte source definition")
+
+        hook = AirbyteHook(airbyte_conn_id=self.airbyte_conn_id)
+        response = hook._api_request(
+            endpoint="source_definitions/create",
+            data=self.source_definition,
+            request_method="POST"
+        )
+
+        if not response:
+            raise AirflowException("Failed to create source definition")
+
+        return response
+
+
+class AirbyteCreateDestinationDefinitionOperator(BaseOperator):
+    def __init__(
+        self,
+        *,
+        airbyte_conn_id: str = "airbyte_default",
+        destination_definition: Dict[str, Any],
+        **kwargs,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.airbyte_conn_id = airbyte_conn_id
+        self.destination_definition = destination_definition
+
+    def execute(self, context: "Context") -> Any:
+        self.log.info(f"Creating Airbyte destination definition")
+
+        hook = AirbyteHook(airbyte_conn_id=self.airbyte_conn_id)
+        response = hook._api_request(
+            endpoint="destination_definitions/create",
+            data=self.destination_definition,
+            request_method="POST"
+        )
+
+        if not response:
+            raise AirflowException("Failed to create destination definition")
+
+        return response
+
+
+class AirbyteListConnectionsOperator(BaseOperator):
+    def __init__(
+        self,
+        *,
+        airbyte_conn_id: str = "airbyte_default",
+        workspace_id: Optional[str] = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.airbyte_conn_id = airbyte_conn_id
+        self.workspace_id = workspace_id
+
+    def execute(self, context: "Context") -> Any:
+        self.log.info("Listing Airbyte connections")
+
+        hook = AirbyteHook(airbyte_conn_id=self.airbyte_conn_id)
+        request_params = {}
+        if self.workspace_id:
+            request_params["workspaceId"] = self.workspace_id
+
+        response = hook._api_request(
+            endpoint="connections/list",
+            data=request_params,
+            request_method="POST"
+        )
+
+        if not response:
+            raise AirflowException("Failed to list connections")
+
+        return response

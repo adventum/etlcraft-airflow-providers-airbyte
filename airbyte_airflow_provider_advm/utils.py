@@ -1,5 +1,15 @@
 from datetime import datetime, timedelta
 
+from airflow.models import Variable
+
+
+def etlcraft_variable(variable_id_without_prefix: str, namespace="etlcraft", default_value=None) -> str:
+    variable_id = f"{namespace}_{variable_id_without_prefix}"
+    try:
+        return Variable.get(variable_id)
+    except KeyError:
+        return default_value
+
 
 def today_date(input_date_format: str = "%Y-%m-%d") -> str:
     return datetime.now().strftime(input_date_format)
