@@ -246,21 +246,22 @@ class CollectConfigsOperator(BaseOperator):
         *,
         config_names: Optional[list[str]] = None,
         namespace: Optional[str] = "etlcraft",
+        entire_datacraft_variable: Optional[bool] = True,
         **kwargs,
     ) -> None:
         super().__init__(**kwargs)
         self.config_names = config_names if config_names else []
         self.namespace = namespace
-
+        self.entire_datacraft_variable = entire_datacraft_variable
 
     def load_config(self, config_name: str) -> dict:
         source_key = f"source_for_config_{config_name}"
         format_key = f"format_for_config_{config_name}"
         path_key = f"path_for_config_{config_name}"
 
-        source = self.etlcraft_variable(source_key, "file")
-        file_format = self.etlcraft_variable(format_key, "yaml")
-        path = self.etlcraft_variable(path_key, f"configs/{config_name}")
+        source = etlcraft_variable(source_key, self.namespace, default_value="file")
+        file_format = etlcraft_variable(format_key, self.namespace, default_value="yaml")
+        path = etlcraft_variable(path_key, self.namespace, default_value=f"configs/{config_name}")
 
         if source == "file" and not path.endswith(('.json', '.yml', '.yaml')):
             extension = ".json" if file_format == "json" else ".yml"
@@ -273,11 +274,16 @@ class CollectConfigsOperator(BaseOperator):
                 else:
                     config = yaml.safe_load(file)
         elif source == "datacraft_variable":
-            from_datacraft = Variable.get("from_datacraft", default_var={})
-            config = from_datacraft.get(config_name, {})
+            str_datacraft_variable = etlcraft_variable(config_name, self.namespace)
+            json_datacraft_variable = json.loads(str_datacraft_variable)
+
+            if self.entire_datacraft_variable:
+                config = json_datacraft_variable
+            else:
+                config = json_datacraft_variable.get(path, {})
         elif source == "other_variable":
-            other_variable_name = self.etlcraft_variable(f"value_for_config_{config_name}")
-            config = Variable.get(other_variable_name, default_var={})
+            other_variable_name = etlcraft_variable(f"value_for_config_{config_name}")
+            config = Variable.get(path, default_var=other_variable_name)
             if file_format == "json":
                 config = json.loads(config)
             else:
@@ -287,7 +293,7 @@ class CollectConfigsOperator(BaseOperator):
 
         return config
 
-    def execute(self, context: Context) -> dict:
+    def execute(self, context: "Context") -> dict:
         all_configs = {}
         for config_name in self.config_names:
             all_configs[config_name] = self.load_config(config_name)
