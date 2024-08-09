@@ -161,7 +161,7 @@ class ResourceRequirements(ApiBaseModel):
     memory_limit: Optional[str] = Field(default=None)
 
     class Config:
-        def alias_generator(self, field_name):
+        def alias_generator(field_name):
             return field_name
 
 
