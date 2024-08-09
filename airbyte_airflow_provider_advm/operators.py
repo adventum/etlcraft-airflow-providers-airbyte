@@ -295,8 +295,9 @@ class CollectConfigsOperator(BaseOperator):
                 else:
                     config = yaml.safe_load(file)
         elif source == "datacraft_variable":
-            str_datacraft_variable = etlcraft_variable(config_name, self.namespace)
-            json_datacraft_variable = json.loads(str_datacraft_variable)
+            json_datacraft_variable = etlcraft_variable(config_name, self.namespace)
+            if type(json_datacraft_variable) is str:
+                json_datacraft_variable = json.loads(json_datacraft_variable)
 
             if self.entire_datacraft_variable:
                 config = json_datacraft_variable
@@ -319,7 +320,6 @@ class CollectConfigsOperator(BaseOperator):
         for config_name in self.config_names:
             all_configs[config_name] = self.load_config(config_name)
 
-        self.log.info(f"Collected configurations: {all_configs}")
         return all_configs
 
 
@@ -461,7 +461,7 @@ class AirbyteCreateConnectionOperator(BaseOperator):
         self.sync_catalog = sync_catalog
 
     def execute(self, context: "Context") -> Any:
-        self.log.info(f"Creating Airbyte connection from source {self.source_id} to destination {self.destination_id}")
+        self.log.info(f"Creating Airbyte connection from source to destination")
 
         hook = AirbyteHook(airbyte_conn_id=self.airbyte_conn_id)
         payload = {
@@ -574,6 +574,5 @@ class AirbyteListConnectionsOperator(BaseOperator):
             raise AirflowException("Failed to list connections")
 
         response_json = response.json()
-        print(response_json)
 
         return response_json
