@@ -353,7 +353,9 @@ class AirbyteGeneralOperator(BaseOperator):
         if not response:
             raise AirflowException("Failed to get a valid response from Airbyte API")
 
-        return response
+        response_json = response.json()
+
+        return response_json
 
 
 class AirbyteCreateSourceOperator(BaseOperator):
@@ -394,7 +396,9 @@ class AirbyteCreateSourceOperator(BaseOperator):
         if not response:
             raise AirflowException("Failed to create source")
 
-        return response
+        response_json = response.json()
+
+        return response_json
 
 
 class AirbyteCreateDestinationOperator(BaseOperator):
@@ -435,7 +439,9 @@ class AirbyteCreateDestinationOperator(BaseOperator):
         if not response:
             raise AirflowException("Failed to create destination")
 
-        return response
+        response_json = response.json()
+
+        return response_json
 
 
 class AirbyteCreateConnectionOperator(BaseOperator):
@@ -473,7 +479,9 @@ class AirbyteCreateConnectionOperator(BaseOperator):
         if not response:
             raise AirflowException("Failed to create connection")
 
-        return response
+        response_json = response.json()
+
+        return response_json
 
 
 class AirbyteCreateSourceDefinitionOperator(BaseOperator):
@@ -501,7 +509,9 @@ class AirbyteCreateSourceDefinitionOperator(BaseOperator):
         if not response:
             raise AirflowException("Failed to create source definition")
 
-        return response
+        response_json = response.json()
+
+        return response_json
 
 
 class AirbyteCreateDestinationDefinitionOperator(BaseOperator):
@@ -529,7 +539,9 @@ class AirbyteCreateDestinationDefinitionOperator(BaseOperator):
         if not response:
             raise AirflowException("Failed to create destination definition")
 
-        return response
+        response_json = response.json()
+
+        return response_json
 
 
 class AirbyteListConnectionsOperator(BaseOperator):
@@ -561,4 +573,7 @@ class AirbyteListConnectionsOperator(BaseOperator):
         if not response:
             raise AirflowException("Failed to list connections")
 
-        return response
+        response_json = response.json()
+        print(response_json)
+
+        return response_json

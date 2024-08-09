@@ -37,7 +37,7 @@ class AirbyteHook(_AirbyteHook, AirbyteApi):
                 data.dict(exclude_none=True, exclude_unset=True, by_alias=True)
                 if data
                 else None
-            ),
+            ) if isinstance(data, ApiBaseModel) else data,
             headers={"accept": "application/json"},
         )
 
