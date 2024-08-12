@@ -501,7 +501,7 @@ class AirbyteCreateSourceDefinitionOperator(BaseOperator):
 
         hook = AirbyteHook(airbyte_conn_id=self.airbyte_conn_id)
         response = hook._api_request(
-            endpoint="source_definitions/create",
+            endpoint="source_definitions/create_custom",
             data=self.source_definition,
             request_method="POST"
         )
@@ -531,7 +531,7 @@ class AirbyteCreateDestinationDefinitionOperator(BaseOperator):
 
         hook = AirbyteHook(airbyte_conn_id=self.airbyte_conn_id)
         response = hook._api_request(
-            endpoint="destination_definitions/create",
+            endpoint="destination_definitions/create_custom",
             data=self.destination_definition,
             request_method="POST"
         )
