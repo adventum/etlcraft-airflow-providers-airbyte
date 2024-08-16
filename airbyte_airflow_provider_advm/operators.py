@@ -452,6 +452,7 @@ class AirbyteCreateConnectionOperator(BaseOperator):
         source_id: str,
         destination_id: str,
         sync_catalog: Dict[str, Any],
+        status: Optional[str] = "active",
         **kwargs,
     ) -> None:
         super().__init__(**kwargs)
@@ -459,6 +460,7 @@ class AirbyteCreateConnectionOperator(BaseOperator):
         self.source_id = source_id
         self.destination_id = destination_id
         self.sync_catalog = sync_catalog
+        self.status = status
 
     def execute(self, context: "Context") -> Any:
         self.log.info(f"Creating Airbyte connection from source to destination")
@@ -468,6 +470,7 @@ class AirbyteCreateConnectionOperator(BaseOperator):
             "sourceId": self.source_id,
             "destinationId": self.destination_id,
             "syncCatalog": self.sync_catalog,
+            "status": self.status
         }
 
         response = hook._api_request(
