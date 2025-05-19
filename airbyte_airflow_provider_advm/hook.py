@@ -2,8 +2,8 @@ import time
 from typing import Any, Optional, Union
 
 from airflow.exceptions import AirflowException
-from airbyte_api.api import AirbyteApi
-from airbyte_api.models import (
+from airbyte_api.advm_api import AirbyteApi
+from airbyte_api.advm_models import (
     ApiBaseModel,
     ConnectionsListRequest,
     GetJobRequest,

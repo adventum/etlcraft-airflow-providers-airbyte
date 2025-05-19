@@ -4,7 +4,7 @@
 
 ## airbyte-api
 
-Модуль `airbyte-api` полностью реализует [API-клиент Airbyte](./airbyte_api/api.py) на основе [схемы Airbyte API](https://airbyte-public-api-docs.s3.us-east-2.amazonaws.com/rapidoc-api-docs.html). Клиент включает в себя CRUD-методы для:
+Модуль `airbyte-api` полностью реализует [API-клиент Airbyte](./airbyte_api/advm_api.py) на основе [схемы Airbyte API](https://airbyte-public-api-docs.s3.us-east-2.amazonaws.com/rapidoc-api-docs.html). Клиент включает в себя CRUD-методы для:
 
 - [Рабочих пространств](https://airbyte-public-api-docs.s3.us-east-2.amazonaws.com/rapidoc-api-docs.html#tag--workspace)
 - [Определений источников](https://airbyte-public-api-docs.s3.us-east-2.amazonaws.com/rapidoc-api-docs.html#tag--source_definition)

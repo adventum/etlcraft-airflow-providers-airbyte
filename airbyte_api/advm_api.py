@@ -4,7 +4,7 @@ from typing import List, Optional
 import requests
 from requests.auth import HTTPBasicAuth
 
-from .models import (
+from .advm_models import (
     ApiBaseModel,
     CancelJobRequest,
     CheckConnectionForUpdateRequest,
