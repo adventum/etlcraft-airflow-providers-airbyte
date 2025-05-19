@@ -1,7 +1,7 @@
 import pytest
 
-from airbyte_api.api import AirbyteApi
-from airbyte_api.models import CreateSourceRequest
+from airbyte_api.advm_api import AirbyteApi
+from airbyte_api.advm_models import CreateSourceRequest
 
 
 def test_create_source():

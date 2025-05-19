@@ -17,7 +17,7 @@ from airbyte_airflow_provider_advm.utils import (
     lookup_fields_paths_mapping,
     etlcraft_variable,
 )
-from airbyte_api.models import (
+from airbyte_api.advm_models import (
     CheckConnectionForUpdateRequest,
     DetailedJob,
     GetSourceRequest,

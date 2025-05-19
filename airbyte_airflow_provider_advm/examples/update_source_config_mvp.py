@@ -1,5 +1,5 @@
-from airbyte_api.api import AirbyteApi
-from airbyte_api.models import (
+from airbyte_api.advm_api import AirbyteApi
+from airbyte_api.advm_models import (
     GetSourceRequest,
     CheckConnectionForUpdateRequest,
     UpdateSourceRequest,

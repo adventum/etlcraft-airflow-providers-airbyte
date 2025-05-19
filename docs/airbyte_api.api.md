@@ -1,8 +1,8 @@
 <!-- markdownlint-disable -->
 
-<a href="../.venv/lib/python3.10/site-packages/airbyte_api/api.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../.venv/lib/python3.10/site-packages/airbyte_api/advm_api.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-# <kbd>module</kbd> `airbyte_api.api`
+# <kbd>module</kbd> `airbyte_api.advm_api`
 
 
 
@@ -11,14 +11,14 @@
 
 ---
 
-<a href="../.venv/lib/python3.10/site-packages/airbyte_api/api.py#L49"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../.venv/lib/python3.10/site-packages/airbyte_api/advm_api.py#L49"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>class</kbd> `AirbyteApi`
 
 
 
 
-<a href="../.venv/lib/python3.10/site-packages/airbyte_api/api.py#L50"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../.venv/lib/python3.10/site-packages/airbyte_api/advm_api.py#L50"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>method</kbd> `__init__`
 

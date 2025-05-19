@@ -1,5 +1,5 @@
 from airbyte_airflow_provider_advm.hook import AirbyteHook
-from airbyte_api.models import ConnectionsListRequest
+from airbyte_api.advm_models import ConnectionsListRequest
 from airflow import DAG
 from airflow.utils.dates import datetime
 from airflow.providers.airbyte.operators.airbyte import AirbyteTriggerSyncOperator
